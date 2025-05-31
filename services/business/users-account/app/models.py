@@ -1,8 +1,13 @@
 from enum import Enum
 from typing import Optional
+import logging
+
 from tortoise import Model, fields
-from tortoise.exceptions import DoesNotExist
+from tortoise.exceptions import DoesNotExist, IntegrityError
 from tortoise.contrib.pydantic import pydantic_model_creator
+
+
+logger = logging.getLogger(__name__)
 
 
 class UserStatus(str, Enum):
@@ -88,6 +93,26 @@ class User(BaseModel):
 
     activity_log: fields.ReverseRelation["AccountActivityLog"]
 
+    async def change_username(self, new_username: str) -> None:
+        if self.username == new_username:
+            logger.warning(f"User {self.id} tried to change username to {new_username} but it is the same as the current one")
+            return
+        
+        existing_user_with_same_username = await User.get_or_none(
+            username=new_username,
+            id__not=self.id 
+        )
+        if existing_user_with_same_username:
+            logger.warning(f"User {self.id} tried to change username to {new_username} but it is already taken")
+            return
+        
+        self.username = new_username
+        try:
+            await self.save()
+        except IntegrityError as e:
+            logger.error(f"Error changing username for user {self.id}: {e}")
+
+
     class Meta:
         table = "users"
         ordering = ["created_at"]
@@ -107,21 +132,3 @@ class AccountActivityLog(BaseModel):
     class Meta:
         table = "account_activity_log"
         ordering = ["-created_at"]
-
-
-User_Pydantic = pydantic_model_creator(User, name="User")
-UserIn_Pydantic = pydantic_model_creator(User, name="UserIn", exclude_readonly=True,
-    exclude=(
-        "status", "is_email_verified", "last_login",
-        "email_notifications_enabled", "email_marketing_notifications_enabled",
-        "push_notifications_enabled", "profile_visibility",
-        "activity_sharing_enabled",
-        "display_name", "recovery_email"
-    )
-)
-UserUpdate_Pydantic = pydantic_model_creator(
-    User, name="UserUpdate", exclude_readonly=True, optional="__all__",
-    exclude=("email", "username", "status", "is_email_verified", "last_login")
-)
-
-AccountActivityLog_Pydantic = pydantic_model_creator(AccountActivityLog, name="AccountActivityLog")
