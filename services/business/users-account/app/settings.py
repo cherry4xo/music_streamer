@@ -21,3 +21,9 @@ CLIENT_ID = os.getenv("CLIENT_ID", default="".join(random.choices(string.ascii_l
 MODE = os.getenv("MODE", default="development")
 
 ROOT_PATH = os.getenv("ROOT_PATH", default="/account")
+
+EMAIL = os.getenv("EMAIL", default="")
+SMTP_HOST = os.getenv("SMTP_HOST", default="")
+SMTP_PORT = os.getenv("SMTP_PORT", default="")
+SMTP_LOGIN = os.getenv("SMTP_LOGIN", default="")
+SMTP_PASSWORD = os.getenv("SMTP_PASSWORD", default="")

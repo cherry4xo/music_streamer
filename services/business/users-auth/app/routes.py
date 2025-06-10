@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends, Security, status
 from fastapi.security import OAuth2PasswordRequestForm
 
-from app.servises import get_access_token, get_refresh_token, refresh_token, validate_access_token, validate_refresh_token
+from app.services import get_access_token, get_refresh_token, refresh_token, validate_access_token, validate_refresh_token
 from app.utils.contrib import reusable_oauth2
 from app.schemas import JWTToken, JWTRefreshToken, JWTAccessToken, RefreshToken
 

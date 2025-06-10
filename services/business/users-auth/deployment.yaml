@@ -1,0 +1,47 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: users-auth
+spec:
+  selector:
+    matchLabels:
+      app: users-auth
+  template:
+    metadata:
+      labels:
+        app: users-auth
+      annotations:
+        vault.hashicorp.com/agent-inject: 'true'
+        vault.hashicorp.com/role: 'users-auth'
+        vault.hashicorp.com/agent-inject-template-auth-secrets.env: |
+            {{- with secret "secret/data/auth/dev" -}}
+            export CLIENT_ID="{{ .Data.data.CLIENT_ID }}"
+            export DB_HOST="{{ .Data.data.DB_HOST }}"
+            export DB_NAME="{{ .Data.data.DB_NAME }}"
+            export DB_PASSWORD="{{ .Data.data.DB_PASSWORD }}"
+            export DB_PORT="{{ .Data.data.DB_PORT }}"
+            export DB_USER="{{ .Data.data.DB_USER }}"
+            export MODE="{{ .Data.data.MODE }}"
+            export ROOT_PATH="{{ .Data.data.ROOT_PATH }}"
+            export SECRET_KEY="{{ .Data.data.SECRET_KEY }}"
+            {{- end }}
+    spec:
+      serviceAccountName: users-auth-sa
+      containers:
+      - name: users-auth
+        image: cherry4xo/music-users-auth:latest
+        imagePullPolicy: Never
+        resources:
+          limits:
+            memory: "128Mi"
+            cpu: "200m"
+        ports:
+        - containerPort: 8080
+        env:
+        - name: API_HOST
+          value: "0.0.0.0"
+        - name: API_PORT
+          value: "8080"
+        command: ["/bin/sh", "-c"]
+        args:
+          - ". /vault/secrets/auth-secrets.env && echo 'Secrets sourced, starting application...' && python3 -u -m uvicorn main:app --host ${API_HOST} --port ${API_PORT}"
