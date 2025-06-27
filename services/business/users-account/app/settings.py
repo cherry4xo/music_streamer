@@ -27,3 +27,5 @@ SMTP_HOST = os.getenv("SMTP_HOST", default="")
 SMTP_PORT = os.getenv("SMTP_PORT", default="")
 SMTP_LOGIN = os.getenv("SMTP_LOGIN", default="")
 SMTP_PASSWORD = os.getenv("SMTP_PASSWORD", default="")
+
+EMAIL_CONFIRMATION_LETTER_EXPIRE_SECONDS = 600

@@ -1,7 +1,8 @@
 from enum import Enum
-from typing import Optional
+from typing import Optional, Any
 import logging
 
+from pydantic import UUID4
 from tortoise import Model, fields
 from tortoise.exceptions import DoesNotExist, IntegrityError
 from tortoise.contrib.pydantic import pydantic_model_creator
@@ -111,6 +112,46 @@ class User(BaseModel):
             await self.save()
         except IntegrityError as e:
             logger.error(f"Error changing username for user {self.id}: {e}")
+
+    async def get_by_fields(self, **kwargs) -> Optional["User"]:
+        try:
+            query = User.get_or_none(**kwargs)
+            model = await query
+            return model
+        except DoesNotExist:
+            return None
+
+    @classmethod
+    async def get_by_email(self, email: str) -> Optional["User"]:
+        return User.get_by_fields(email=email)
+        
+    @classmethod
+    async def get_by_username(self, username: str) -> Optional["User"]:
+        return User.get_by_fields(username=username)
+    
+    @classmethod
+    async def get_by_uuid(self, uuid: UUID4) -> Optional["User"]:
+        return User.get_by_fields(uuid=uuid)
+
+    @classmethod
+    async def change_email(self, new_email: str) -> None:
+        if self.email == new_email:
+            logger.warning(f"User {self.id} tried to change email to {new_email} but it is the same as the current one")
+            return
+        
+        existing_user_with_same_email = await User.get_or_none(
+            email=new_email,
+            id__not=self.id 
+        )
+        if existing_user_with_same_email:
+            logger.warning(f"User {self.id} tried to change email to {new_email} but it is already taken")
+            return
+        
+        self.email = new_email
+        try:
+            await self.save()
+        except IntegrityError as e:
+            logger.error(f"Error changing email for user {self.id}: {e}")
 
 
     class Meta:

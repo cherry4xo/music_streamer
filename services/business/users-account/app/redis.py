@@ -1,5 +1,5 @@
 import logging
-from typing import Optional, List, Union
+from typing import Dict, Optional, List, Union
 import json
 import asyncio
 
@@ -27,21 +27,18 @@ async def ping_redis_connection(r: Redis):
     
 
 class RedisInterface:
-    def __init__(self, **kwargs):
-        pass
-
-    async def get_record(self, type: str, id: str, key: Optional[str]=None) -> Optional[dict]:
-        await ping_redis_connection(r)
+    @classmethod
+    async def get_record(cls, type: str, id: str, key: Optional[str]=None) -> Optional[dict]:
         try:
             async with r.pipeline(transaction=True) as pipe:
                 name = f"{type}:{id}"
-                await pipe.watch(name)
                 if key:
                     data = await pipe.hget(name=name, key=key)
+                    return {key: data}
                 else:
                     data = await pipe.hgetall(name=name)
-                await pipe.unwatch()
-                return json.loads(data) if data is not None else data
+                    return data
+                # return json.loads(data) if data is not None else data
         except WatchError as e:
             logger.exception(f"Watch error: failed to get record {type}:{id}: {e}")
             return None
@@ -52,26 +49,30 @@ class RedisInterface:
             logger.exception(f"Error: failed to get record {type}:{id}: {e}")
             return None
 
-    async def create_record(self, type: str, id: str, key: Optional[str]=None, value: Union[dict, str]=None) -> None:
-        await ping_redis_connection(r)
+    @classmethod
+    async def create_record(cls, type: str, id: str, data: Dict[str, Union[str, dict, int]], expire: int=None) -> None:
         retry_count = 0
         max_retries = 5
+        name = f"{type}:{id}"
 
-        store_value = value if isinstance(value, str) else json.dumps(value)
+        store_mapping = {
+            key: json.dumps(value) if isinstance(value, dict) else str(value)
+            for key, value in data.items()
+        }
+
         while retry_count < max_retries:
             try:
                 async with r.pipeline(transaction=True) as pipe:
                     name = f"{type}:{id}"
                     await pipe.watch(name)
-                    if key:
-                        data = await pipe.hget(name=name, key=key)
-                    else:
-                        data = await pipe.hgetall(name=name)
-                    if data:
+                    if await pipe.exists(name):
                         await pipe.unwatch()
                         return
+                    
                     pipe.multi()
-                    pipe.hset(name=name, key=key, value=store_value)
+                    pipe.hset(name=name, mapping=store_mapping)
+                    if expire is not None:
+                        pipe.expire(name=name, time=expire)
                     await pipe.execute()
                     break
             except WatchError as e:
@@ -84,8 +85,8 @@ class RedisInterface:
                 logger.exception(f"Error: failed to create record {type}:{id}: {e}")
                 break
 
-    async def modify_record(self, type: str, id: str, key: str = None, value: Union[dict, str] = None) -> None:
-        await ping_redis_connection(r)
+    @classmethod
+    async def modify_record(cls, type: str, id: str, key: str = None, value: Union[dict, str] = None) -> None:
         retry_count = 0
         max_retries = 5
 
@@ -116,8 +117,8 @@ class RedisInterface:
                 logger.exception(f"Error while modifying record: {e}")
                 break
 
-    async def delete_record_key(self, type: str, id: str, key: str) -> None:
-        await ping_redis_connection(r)
+    @classmethod
+    async def delete_record_key(cls, type: str, id: str, key: str) -> None:
         retry_count = 0
         max_retries = 5
         while retry_count < max_retries:
@@ -143,14 +144,14 @@ class RedisInterface:
                 logger.exception(f"Error while deleting record key: {e}")
                 break
 
-    async def delete_record(self, type: str, id: str) -> None:
-        await ping_redis_connection(r)
+    @classmethod
+    async def delete_record(cls, type: str, id: str) -> None:
         retry_count = 0
         max_retries = 5
         while retry_count < max_retries:
             try:
                 name = f"{type}:{id}"
-                if not await self.record_exist(id):
+                if not await cls.record_exist(type=type, id=id):
                     logger.warning(f"Record {name} does not exist")
                     return
                 async with r.pipeline(transaction=True) as pipe:
@@ -169,14 +170,12 @@ class RedisInterface:
                 logger.exception(f"Error while deleting record: {e}")
                 break
 
-    async def record_exist(self, type: str, id: str) -> bool:
-        await ping_redis_connection(r)
+    @classmethod
+    async def record_exist(cls, type: str, id: str) -> bool:
         try:
             async with r.pipeline(transaction=True) as pipe:
                 name = f"{type}:{id}"
-                await pipe.watch(name)
                 data = await pipe.exists(name)
-                await pipe.unwatch()
                 return data == 1
         except WatchError as e:
             logger.exception(f"Watch error while checking record existence: {e}")
