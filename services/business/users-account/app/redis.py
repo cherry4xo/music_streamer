@@ -2,11 +2,13 @@ import logging
 from typing import Dict, Optional, List, Union
 import json
 import asyncio
+from functools import wraps
 
 from fastapi.exceptions import HTTPException
 from redis import Redis
 from redis.asyncio import from_url
 from redis.exceptions import ConnectionError, WatchError
+from redis.asyncio.client import Pipeline
 
 from app import settings
 
@@ -26,161 +28,122 @@ async def ping_redis_connection(r: Redis):
         )
     
 
+async def redis_transaction_with_retry(func):
+    @wraps(func)
+    async def wrapper(cls, *args, **kwargs):
+        retry_count = 0
+        max_retries = 5
+
+        record_type = kwargs.get("type")
+        record_id = kwargs.get("id")
+        name = f"{record_type}:{record_id}"
+
+        while retry_count < max_retries:
+            try:
+                async with r.pipeline(transaction=True) as pipe:
+                    await pipe.watch(name)
+                    result = await func(cls, pipe, *args, **kwargs)
+                    if pipe.watching:
+                        await pipe.execute()
+                    return result
+            except WatchError:
+                retry_count += 1
+                if retry_count >= max_retries:
+                    logger.exception(f"Watch error: failed to execute '{func.__name__}' on record {name} after {max_retries} retries.")
+                    break
+
+                await asyncio.sleep(0.1 * (2 ** retry_count))
+                continue
+
+            except Exception as e:
+                logger.exception(f"Error during '{func.__name__}' on record {name}: {e}")
+                break
+        
+    return wrapper
+
+
+
 class RedisInterface:
     @classmethod
     async def get_record(cls, type: str, id: str, key: Optional[str]=None) -> Optional[dict]:
         try:
-            async with r.pipeline(transaction=True) as pipe:
-                name = f"{type}:{id}"
-                if key:
-                    data = await pipe.hget(name=name, key=key)
-                    return {key: data}
-                else:
-                    data = await pipe.hgetall(name=name)
-                    return data
-                # return json.loads(data) if data is not None else data
-        except WatchError as e:
-            logger.exception(f"Watch error: failed to get record {type}:{id}: {e}")
-            return None
-        except json.JSONDecodeError as e:
-            logger.error(f"JSON decode error: failed to decode record {type}:{id}: {e}")
-            return None
+            name = f"{type}:{id}"
+            if key:
+                data = await r.hget(name=name, key=key)
+                return {key: data}
+            return await r.hgetall(name=name)
         except Exception as e:
             logger.exception(f"Error: failed to get record {type}:{id}: {e}")
             return None
+        
+    @classmethod
+    async def record_exists(cls, type: str, id: str) -> bool:
+        try:
+            name = f"{type}:{id}"
+            return await r.exists(name) == 1
+        except Exception as e:
+            logger.exception(f"Error: failed to check record existence {type}:{id}: {e}")
+            return False
 
     @classmethod
-    async def create_record(cls, type: str, id: str, data: Dict[str, Union[str, dict, int]], expire: int=None) -> None:
-        retry_count = 0
-        max_retries = 5
+    @redis_transaction_with_retry
+    async def create_record(cls, pipe: Pipeline, type: str, id: str, data: Dict[str, Union[str, dict, int]], expire: int=None) -> None:
         name = f"{type}:{id}"
+
+        if await pipe.exists(name):
+            logger.warning(f"Record {name} already exists")
+            pipe.unwatch()
+            return
 
         store_mapping = {
             key: json.dumps(value) if isinstance(value, dict) else str(value)
             for key, value in data.items()
         }
-
-        while retry_count < max_retries:
-            try:
-                async with r.pipeline(transaction=True) as pipe:
-                    name = f"{type}:{id}"
-                    await pipe.watch(name)
-                    if await pipe.exists(name):
-                        await pipe.unwatch()
-                        return
-                    
-                    pipe.multi()
-                    pipe.hset(name=name, mapping=store_mapping)
-                    if expire is not None:
-                        pipe.expire(name=name, time=expire)
-                    await pipe.execute()
-                    break
-            except WatchError as e:
-                retry_count += 1
-                if retry_count >= max_retries:
-                    logger.exception(f"Watch error: failed to create record {type}:{id}: {e}")
-                    break
-                await asyncio.sleep(0.1 * 2 ** retry_count)
-            except Exception as e:
-                logger.exception(f"Error: failed to create record {type}:{id}: {e}")
-                break
+        
+        pipe.multi()
+        pipe.hset(name=name, mapping=store_mapping)
+        if expire is not None:
+            pipe.expire(name=name, time=expire)
 
     @classmethod
-    async def modify_record(cls, type: str, id: str, key: str = None, value: Union[dict, str] = None) -> None:
-        retry_count = 0
-        max_retries = 5
+    async def modify_record(cls, pipe: Pipeline, type: str, id: str, data: Dict[str, Union[str, dict, int]], expire: int=None) -> None:
+        name = f"{type}:{id}"
 
-        store_value = value if isinstance(value, str) else json.dumps(value)
-        while retry_count < max_retries:
-            try:
-                async with r.pipeline(transaction=True) as pipe:
-                    name = f"{type}:{id}"
-                    await pipe.watch(name)
-                    if key:
-                        data = await pipe.hget(name=name, key=key)
-                    else:
-                        data = await pipe.hgetall(name=name)
-                    if not data:
-                        logger.warning(f"Record {type}:{id} does not exist")
-                        return
-                    pipe.multi()
-                    pipe.hset(name=name, key=key, value=store_value)
-                    await pipe.execute()
-                    break
-            except WatchError as e:
-                retry_count += 1
-                if retry_count >= max_retries:
-                    logger.exception(f"Watch error: failed to modify record {type}:{id}: {e}")
-                    break
-                await asyncio.sleep(0.1 * 2 ** retry_count)
-            except Exception as e:
-                logger.exception(f"Error while modifying record: {e}")
-                break
+        if not await pipe.exists(name):
+            logger.warning(f"Record {name} does not exist")
+            pipe.unwatch()
+            return
+        
+        store_mapping = {
+            key: json.dumps(value) if isinstance(value, dict) else str(value)
+            for key, value in data.items()
+        }
+
+        pipe.multi()
+        pipe.hset(name=name, mapping=store_mapping)
+        if expire is not None:
+            pipe.expire(name=name, time=expire)
 
     @classmethod
-    async def delete_record_key(cls, type: str, id: str, key: str) -> None:
-        retry_count = 0
-        max_retries = 5
-        while retry_count < max_retries:
-            try:
-                async with r.pipeline(transaction=True) as pipe:
-                    name = f"{type}:{id}"
-                    await pipe.watch(name)
-                    data = await pipe.hget(name=name, key=key)
-                    if not data:
-                        await pipe.unwatch()
-                        return
-                    pipe.multi()
-                    pipe.hdel(name, key)
-                    await pipe.execute()
-                    break
-            except WatchError:
-                retry_count += 1
-                if retry_count >= max_retries:
-                    logger.error(f"Failed to delete record key after {max_retries} retries")
-                    break
-                await asyncio.sleep(0.1 * (2 ** retry_count))
-            except Exception as e:
-                logger.exception(f"Error while deleting record key: {e}")
-                break
+    @redis_transaction_with_retry
+    async def delete_record_key(cls, pipe: Pipeline, type: str, id: str, key: str):
+        name = f"{type}:{id}"
+        if not await pipe.hexists(name, key):
+            logger.warning(f"Field '{key}' in record {name} does not exist. Cannot delete.")
+            pipe.unwatch()
+            return
+            
+        pipe.multi()
+        pipe.hdel(name, key)
 
     @classmethod
-    async def delete_record(cls, type: str, id: str) -> None:
-        retry_count = 0
-        max_retries = 5
-        while retry_count < max_retries:
-            try:
-                name = f"{type}:{id}"
-                if not await cls.record_exist(type=type, id=id):
-                    logger.warning(f"Record {name} does not exist")
-                    return
-                async with r.pipeline(transaction=True) as pipe:
-                    await pipe.watch(name)
-                    pipe.multi()
-                    pipe.delete(name)
-                    await pipe.execute()
-                    break
-            except WatchError:
-                retry_count += 1
-                if retry_count >= max_retries:
-                    logger.error(f"Failed to delete record after {max_retries} retries")
-                    break
-                await asyncio.sleep(0.1 * (2 ** retry_count))
-            except Exception as e:
-                logger.exception(f"Error while deleting record: {e}")
-                break
+    @redis_transaction_with_retry
+    async def delete_record(cls, pipe: Pipeline, type: str, id: str):
+        name = f"{type}:{id}"
+        if not await pipe.exists(name):
+            logger.warning(f"Record {name} does not exist. Cannot delete.")
+            pipe.unwatch()
+            return
 
-    @classmethod
-    async def record_exist(cls, type: str, id: str) -> bool:
-        try:
-            async with r.pipeline(transaction=True) as pipe:
-                name = f"{type}:{id}"
-                data = await pipe.exists(name)
-                return data == 1
-        except WatchError as e:
-            logger.exception(f"Watch error while checking record existence: {e}")
-            return False
-        except Exception as e:
-            logger.exception(f"Unexpected error: {e}")
-            return False
-
+        pipe.multi()
+        pipe.delete(name)
