@@ -1,25 +1,15 @@
 terraform {
-  required_version = ">= 1.0"
-
   required_providers {
-    docker = {
-        source = "kreuzwerker/docker"
-        version = "~> 3.0"
+    kubernetes = {
+      source = "hashicorp/kubernetes"
+      version = ">= 2.10.0"
     }
   }
 }
 
-provider "docker" {
-  
-}
+provider "kubernetes" { }
 
-provider "kubernetes" {
-  config_path = "~/.kube/config"
-  config_context = "music-streaming"
-}
-
-resource "kubernetes_namespace" "music" {
-  metadata {
-    name = "music-streaming"
-  }
+provider "vault" {
+  address = "http://vault-internal:8200"
+  token = "root"
 }

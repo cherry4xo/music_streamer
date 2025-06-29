@@ -1,3 +1,3 @@
-path "secret/data/dev/auth" {
+path "secret/data/users-auth" {
     capabilities = ["read"]
 }

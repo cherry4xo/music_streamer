@@ -1,28 +1,54 @@
-resource "docker_network" "music_network" {
-  name = "music-streaming-network"
-}
+resource "kubernetes_deployment" "app_deployments" {
+  for_each = var.services
 
-resource "docker_image" "postgres_image" {
-  name = "postgres:15-alpine"
-  keep_locally = true
-}
-
-resource "docker_container" "postgres_db" {
-  name = "postgres-db"
-  image = docker_image.postgres_image.image_id
-  networks_advanced {
-    name = docker_network.music_network.name
-  }
-  ports {
-    internal = 5432
-    external = 5432
+  metadata {
+    name = "${each.key}-deployment"
+    labels = { app = each.key }
   }
 
-  volumes {
-    host_path = ""
-    container_path = "/var/lib/postgresql/data"
+  spec {
+    replicas = each.value.replicas
+    selector {
+      match_labels = { app = each.key }
+    }
+    template {
+      metadata {
+        labels = { app = each.key }
+      }
+      spec {
+        service_account_name = kubernetes_service_account.app_sa[each.key].metadata.0.name
+
+        container {
+          name = each.key
+          image = each.value.image
+          image_pull_policy = "Never"
+
+          port {
+            container_port = each.value.container_port
+          }
+        }
+      }
+    }
   }
-  
-  restart = "unless-stopped"
 }
 
+resource "kubernetes_service" "app_services" {
+  for_each = var.services
+
+  metadata {
+    name = "${each.key}-service"
+  }
+
+  spec {
+    selector = {
+      app = each.key
+    }
+    port {
+      protocol = "TCP"
+      port = each.value.service_port
+      target_port = each.value.container_port
+    }
+
+    type = "LoadBalancer"
+  }
+}
