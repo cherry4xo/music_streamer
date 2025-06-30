@@ -39,6 +39,23 @@ deploy-secrets-to-vault:
     - firstvds
   script:
     - set -e
+    # setting up minikube cluster
+    - if ! minikube status -p music | grep -q "Running"; then
+        echo "--------------------"
+        echo "Starting Minikube..."
+        echo "--------------------"
+        minikube start --memory=6656 --cpus=4 --driver=docker -p calls
+    - else
+        echo "----------------------------"
+        echo "Minikube is already running."
+        echo "----------------------------"
+    - fi
+    - echo "------------------------------------------"
+    - echo "Setting Docker environment for Minikube..."
+    - echo "------------------------------------------"
+    - eval $(minikube -p "$PROFILE" docker-env)
+
+    # setting up hashicorp vault
     - echo "Getting Vault URL from Minikube..."
     - export VAULT_URL=$(minikube service vault --url)
     - export VAULT_ADDR=$VAULT_URL
