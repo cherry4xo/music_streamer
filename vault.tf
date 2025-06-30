@@ -1,3 +1,17 @@
+resource "kubernetes_service_account" "vault_auth" {
+    metadata {
+        name = "vault-auth"
+        namespace = "default"
+    }
+}
+
+data "kubernetes_secret" "vault_auth_token" {
+    metadata {
+        name = kubernetes_service_account.vault_auth.default_secret_name
+        namespace = "default"
+    }
+}
+
 resource "vault_auth_backend" "kubernetes" {
     type = "kubernetes"
 }
@@ -5,12 +19,13 @@ resource "vault_auth_backend" "kubernetes" {
 resource "vault_kubernetes_auth_backend_config" "config" {
     backend = vault_auth_backend.kubernetes.path
     kubernetes_host = "https://kubernetes.default.svc"
-    kubernetes_ca_cert = file("/var/run/secrets/kubernetes.io/serviceaccount/ca.crt")
+    token_reviewer_jwt = base64decode(data.kubernetes_secret.vault_auth_token.data.token)
+    kubernetes_ca_cert = base64decode(data.kubernetes_secret.vault_auth.auth_token.data["ca.crt"])
 }
 
 resource "vault_policy" "users_auth_policy" {
     name = "users-auth"
-    policy = file("./hashicorp/users-auth-policy.hcl")
+    policy = file("./services/platform/hashicorp/users-auth-policy.hcl")
 }
 
 resource "vault_kubernetes_auth_backend_role" "users_auth_role" {
@@ -24,7 +39,7 @@ resource "vault_kubernetes_auth_backend_role" "users_auth_role" {
 
 resource "vault_policy" "users_account_policy" {
     name = "users-account"
-    policy = file("./hashicorp/users-account-policy.hcl")
+    policy = file("./services/platform/hashicorp/users-account-policy.hcl")
 }
 
 resource "vault_kubernetes_auth_backend_role" "users_account_role" {
