@@ -1,9 +1,16 @@
 variables:
+  TF_ROOT: "terraform"
+  TF_STATE_NAME: default
   MINIKUBE_PROFILE: "misuc-streaming"
 
 stages:
   - build
+  - validate
+  - plan
+  - apply
   - deploy-secrets
+
+include: '.gitlab-ci-terraform.yml'
 
 .build-template:
   stage: build
@@ -35,6 +42,7 @@ build-users-account:
 
 deploy-secrets-to-vault:
   stage: deploy-secrets
+  needs: ["apply-terraform"]
   image: 
     name: hashicorp/vault:latest
     entrypoint: [""]
@@ -69,4 +77,5 @@ deploy-secrets-to-vault:
                                         smtp_password="$USERS_ACCOUNT_SMTP_PASSWORD" \
                                         email_confirmation_letter_expire_seconds="$USERS_ACCOUNT_EMAIL_COMFIRMATION_LETTER_EXPIRE_MINUTES"
   rules:
-    - when: manual
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+      when: manual

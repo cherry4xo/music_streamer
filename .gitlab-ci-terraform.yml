@@ -1,0 +1,55 @@
+.terraform-template:
+  image: 
+    name: registry.gitlab.com/gitlab-org/terraform-images/terraform:latest
+    entrypoint: [""]
+  tags:
+    - firstvds
+  before_script:
+    - export GITLAB_TF_ADDRESS=${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/terraform/state/${TF_STATE_NAME}
+    - terraform init -reconfigure \
+      -backend-config="address=${GITLAB_TF_ADDRESS}" \
+      -backend-config="lock_address=${GITLAB_TF_ADDRESS}/lock" \
+      -backend-config="unlock_address=${GITLAB_TF_ADDRESS}/lock" \
+      -backend-config="username=${GITLAB_USER_LOGIN}" \
+      -backend-config="password=${CI_JOB_TOKEN}" \
+      -backend-config="lock_method=POST" \
+      -backend-config="unlock_method=DELETE" \
+      -backend-config="retry_wait_min=5"
+  script:
+    - set -e
+    - |
+      if ! minikube status -p $MINIKUBE_PROFILE | grep -q "Running"; then
+        minikube start --memory=6656 --cpus=4 --driver=docker -p $MINIKUBE_PROFILE
+      else
+        echo "Minikube profile $MINIKUBE_PROFILE is already running"
+      fi
+    - minikube update-context -p $MINIKUBE_PROFILE
+    
+validate_terraform:
+  extends: .terraform-template
+  stage: validate
+  script:
+    - terraform validate
+
+plan_terraform:
+  extends: .terraform-template
+  stage: plan
+  script:
+    - terraform plan -out="plan.tfplan"
+  artifacts:
+    name: "plan"
+    paths:
+      - "${TF_ROOT}/plan.tfplan"
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+
+apply_terraform:
+  extends: .terraform-template
+  stage: apply
+  script:
+    - terraform apply -input=false "plan.tfplan"
+  dependencies:
+    - plan_terraform
+  rules:
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+      when: manual

@@ -29,7 +29,7 @@ resource "vault_kubernetes_auth_backend_config" "config" {
 
 resource "vault_policy" "users_auth_policy" {
     name = "users-auth"
-    policy = file("./services/platform/hashicorp/users-auth-policy.hcl")
+    policy = file("../services/platform/hashicorp/users-auth-policy.hcl")
 }
 
 resource "vault_kubernetes_auth_backend_role" "users_auth_role" {
@@ -43,7 +43,7 @@ resource "vault_kubernetes_auth_backend_role" "users_auth_role" {
 
 resource "vault_policy" "users_account_policy" {
     name = "users-account"
-    policy = file("./services/platform/hashicorp/users-account-policy.hcl")
+    policy = file("../services/platform/hashicorp/users-account-policy.hcl")
 }
 
 resource "vault_kubernetes_auth_backend_role" "users_account_role" {
