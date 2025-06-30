@@ -1,5 +1,6 @@
 stages:
   - build
+  - deploy-secrets
 
 .build-template:
   stage: build
@@ -28,3 +29,28 @@ build-users-account:
   variables:
     SERVICE_NAME: "users-account"
     SERVICE_PATH: "services/business/users-account"
+
+deploy-secrets-to-vault:
+  stage: deploy-secrets
+  image: 
+    name: hashicorp/vault:latest
+    entrypoint: [""]
+  script:
+    - export VAULT_ADDR=http://vault:8200
+    - echo "Writing secrets for users-auth..."
+    - vault kv put secret/users-auth db_url="$USERS_AUTH_POSTGRES_URL" \
+                                     secret_key="$USERS_AUTH_SECRET_KEY" \
+                                     client_id="$USERS_AUTH_CLIENT_ID" \
+                                     redis_url="$USERS_AUTH_REDIS_URL" \
+                                     access_token_expire_minutes="$ACCESS_TOKEN_EXPIRE_MINUTES" \
+                                     refresh_token_expire_minutes="$REFRESH_TOKEN_EXPIRE_MINUTES"
+    - vault kv put secret/users-account db_url="USERS_ACCOUNT_PORTGRES_URL" \
+                                        secret_key="$USERS_ACCOUNT_SECRET_KEY" \
+                                        client_id="$USERS_ACCOUNT_CLIENT_ID" \
+                                        redis_url="$USERS_ACCOUNT_REDIS_URL" \
+                                        email="$USERS_ACCOUNT_EMAIL" \
+                                        smtp_host="$USERS_ACCOUNT_SMTP_HOST" \
+                                        smtp_port="$USERS_ACCOUNT_SMTP_PORT" \
+                                        smtp_login="$USERS_ACCOUNT_SMTP_LOGIN" \
+                                        smtp_password="$USERS_ACCOUNT_SMTP_PASSWORD" \
+                                        email_confirmation_letter_expire_seconds="$USERS_ACCOUNT_EMAIL_COMFIRMATION_LETTER_EXPIRE_MINUTES"
