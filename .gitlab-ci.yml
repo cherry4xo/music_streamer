@@ -2,7 +2,8 @@ variables:
   MINIKUBE_PROFILE: "misuc-streaming"
 
 stages:
-  - build
+  - build-users-auth
+  - build-users-account
   - deploy-secrets
 
 .build-template:
