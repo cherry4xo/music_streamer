@@ -1,3 +1,6 @@
+variables:
+  MINIKUBE_PROFILE: "misuc-streaming"
+
 stages:
   - build
   - deploy-secrets
@@ -11,12 +14,12 @@ stages:
     - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
   script:
     - cd $SERVICE_PATH
-    - docker build -t $$CI_REGISTRY/$CI_PROJECT_PATH/$SERVICE_NAME:$CI_COMMIT_SHA .
-    - docker push $$CI_REGISTRY/$CI_PROJECT_PATH/$SERVICE_NAME:$CI_COMMIT_SHA
+    - docker build -t $CI_REGISTRY/$CI_PROJECT_PATH/$SERVICE_NAME:$CI_COMMIT_SHA .
+    - docker push $CI_REGISTRY/$CI_PROJECT_PATH/$SERVICE_NAME:$CI_COMMIT_SHA
   rules:
     - if: $CI_COMMIT_BRANCH == "master"
       changes:
-        - $$SERVICE_PATH/**/*
+        - $SERVICE_PATH/**/*
 
 build-users-auth:
   extends: .build-template
@@ -40,20 +43,16 @@ deploy-secrets-to-vault:
   script:
     - set -e
     # setting up minikube cluster
-    - if ! minikube status -p music | grep -q "Running"; then
+    - if ! minikube status -p $MINIKUBE_PROFILE | grep -q "Running"; then
         echo "--------------------"
         echo "Starting Minikube..."
         echo "--------------------"
-        minikube start --memory=6656 --cpus=4 --driver=docker -p calls
+        minikube start --memory=6656 --cpus=4 --driver=docker -p $MINIKUBE_PROFILE
     - else
         echo "----------------------------"
         echo "Minikube is already running."
         echo "----------------------------"
     - fi
-    - echo "------------------------------------------"
-    - echo "Setting Docker environment for Minikube..."
-    - echo "------------------------------------------"
-    - eval $(minikube -p "$PROFILE" docker-env)
 
     # setting up hashicorp vault
     - echo "Getting Vault URL from Minikube..."
