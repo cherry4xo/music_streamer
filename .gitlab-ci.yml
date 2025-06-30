@@ -42,17 +42,6 @@ deploy-secrets-to-vault:
     - firstvds
   script:
     - set -e
-    # setting up minikube cluster
-    - if ! minikube status -p $MINIKUBE_PROFILE | grep -q "Running"; then
-        echo "--------------------"
-        echo "Starting Minikube..."
-        echo "--------------------"
-        minikube start --memory=6656 --cpus=4 --driver=docker -p $MINIKUBE_PROFILE
-    - else
-        echo "----------------------------"
-        echo "Minikube is already running."
-        echo "----------------------------"
-    - fi
 
     # setting up hashicorp vault
     - echo "Getting Vault URL from Minikube..."
