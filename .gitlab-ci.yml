@@ -35,8 +35,16 @@ deploy-secrets-to-vault:
   image: 
     name: hashicorp/vault:latest
     entrypoint: [""]
+  tags:
+    - firstvds
   script:
-    - export VAULT_ADDR=http://vault:8200
+    - set -e
+    - echo "Getting Vault URL from Minikube..."
+    - export VAULT_URL=$(minikube service vault --url)
+    - export VAULT_ADDR=$VAULT_URL
+    - export VAULT_TOKEN="root"
+    - echo "Logging into Vault at $VAULT_ADDR..."
+    - vault login $VAULT_TOKEN
     - echo "Writing secrets for users-auth..."
     - vault kv put secret/users-auth db_url="$USERS_AUTH_POSTGRES_URL" \
                                      secret_key="$USERS_AUTH_SECRET_KEY" \
@@ -44,6 +52,7 @@ deploy-secrets-to-vault:
                                      redis_url="$USERS_AUTH_REDIS_URL" \
                                      access_token_expire_minutes="$ACCESS_TOKEN_EXPIRE_MINUTES" \
                                      refresh_token_expire_minutes="$REFRESH_TOKEN_EXPIRE_MINUTES"
+    - echo "Writing secrets for users-account..."
     - vault kv put secret/users-account db_url="USERS_ACCOUNT_PORTGRES_URL" \
                                         secret_key="$USERS_ACCOUNT_SECRET_KEY" \
                                         client_id="$USERS_ACCOUNT_CLIENT_ID" \
@@ -54,3 +63,5 @@ deploy-secrets-to-vault:
                                         smtp_login="$USERS_ACCOUNT_SMTP_LOGIN" \
                                         smtp_password="$USERS_ACCOUNT_SMTP_PASSWORD" \
                                         email_confirmation_letter_expire_seconds="$USERS_ACCOUNT_EMAIL_COMFIRMATION_LETTER_EXPIRE_MINUTES"
+  rules:
+    - when: manual
