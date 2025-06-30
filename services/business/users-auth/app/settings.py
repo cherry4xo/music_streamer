@@ -26,6 +26,10 @@ DB_URL = get_secret_from_vault("users-auth", "db_url")
 DB_CONNECTIONS = {
     "default": DB_URL,
 }
+REDIS_URL = get_secret_from_vault("users-auth", "redis_url")
+# KAFKA_URL = get_secret_from_vault("users-auth", "kafka_url")
+# KAFKA_PRODUCE_TOPICS = get_secret_from_vault("users-auth", "kafka_produce_topics")
+# KAFKA_CONSUME_TOPICS = get_secret_from_vault("users-auth", "kafka_consume_topics")
 
 CORS_ORIGINS = ["*"]
 CORS_ALLOW_CREDENTIALS = True
