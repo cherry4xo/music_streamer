@@ -13,7 +13,7 @@ data "kubernetes_secret" "vault_auth_token_secret" {
           "kubernetes.io/service-account.name" = kubernetes_service_account.vault_auth_sa.metadata[0].name
         }
     }
-    type = "kubernetes.io/service-account-token"
+#    type = "kubernetes.io/service-account-token"
 }
 
 resource "vault_auth_backend" "kubernetes" {
@@ -23,8 +23,8 @@ resource "vault_auth_backend" "kubernetes" {
 resource "vault_kubernetes_auth_backend_config" "config" {
     backend = vault_auth_backend.kubernetes.path
     kubernetes_host = "https://kubernetes.default.svc"
-    token_reviewer_jwt = kubernetes_secret.vault_auth_token_secret.data.token
-    kubernetes_ca_cert = base64decode(kubernetes_secret.vault_auth_token_secret.data["ca.crt"])
+    token_reviewer_jwt = data.kubernetes_secret.vault_auth_token_secret.data.token
+    kubernetes_ca_cert = base64decode(data.kubernetes_secret.vault_auth_token_secret.data["ca.crt"])
 }
 
 resource "vault_policy" "users_auth_policy" {
