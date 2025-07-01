@@ -23,11 +23,20 @@
         -backend-config="retry_wait_min=5"
     - |
       if ! minikube status -p $MINIKUBE_PROFILE | grep -q "Running"; then
-        minikube start --memory=6656 --cpus=4 --driver=docker -p $MINIKUBE_PROFILE --wait=all
+        minikube start --memory=6656 --cpus=4 --driver=docker -p $MINIKUBE_PROFILE --wait=all --apiserver-ips=127.0.0.1 --apiserver-name=localhost
       else
         echo "Minikube profile $MINIKUBE_PROFILE is already running"
       fi
     - minikube update-context -p $MINIKUBE_PROFILE
+
+    - minikube update-context -p $MINIKUBE_PROFILE
+
+    - |
+      echo "Waiting for Kubernetes API server..."
+      until kubectl get po &> /dev/null; do
+        sleep 1
+      done
+      echo "Kubernetes API server is running"
 
     - |
       if [[ "$CI_JOB_STAGE" == "apply" ]]; then
