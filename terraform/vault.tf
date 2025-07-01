@@ -17,10 +17,14 @@ data "kubernetes_secret" "vault_auth_token_secret" {
 }
 
 resource "vault_auth_backend" "kubernetes" {
+    depends_on = [ helm_release.vault ]
+
     type = "kubernetes"
 }
 
 resource "vault_kubernetes_auth_backend_config" "config" {
+    depends_on = [ helm_release.vault ]
+
     backend = vault_auth_backend.kubernetes.path
     kubernetes_host = "https://kubernetes.default.svc"
     token_reviewer_jwt = data.kubernetes_secret.vault_auth_token_secret.data.token
@@ -28,11 +32,15 @@ resource "vault_kubernetes_auth_backend_config" "config" {
 }
 
 resource "vault_policy" "users_auth_policy" {
+    depends_on = [ helm_release.vault ]
+
     name = "users-auth"
     policy = file("../services/platform/hashicorp/users-auth-policy.hcl")
 }
 
 resource "vault_kubernetes_auth_backend_role" "users_auth_role" {
+    depends_on = [ helm_release.vault ]
+
     backend = vault_auth_backend.kubernetes.path
     role_name = "users-auth"
     bound_service_account_names = ["users-auth-sa"]
@@ -42,11 +50,15 @@ resource "vault_kubernetes_auth_backend_role" "users_auth_role" {
 }
 
 resource "vault_policy" "users_account_policy" {
+    depends_on = [ helm_release.vault ]
+
     name = "users-account"
     policy = file("../services/platform/hashicorp/users-account-policy.hcl")
 }
 
 resource "vault_kubernetes_auth_backend_role" "users_account_role" {
+    depends_on = [ helm_release.vault ]
+
     backend = vault_auth_backend.kubernetes.path
     role_name = "users-account"
     bound_service_account_names = ["users-account-sa"]

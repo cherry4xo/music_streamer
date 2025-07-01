@@ -4,6 +4,14 @@ terraform {
       source = "hashicorp/kubernetes"
       version = ">= 2.10.0"
     }
+    vault = {
+      source = "hashicorp/vault"
+      version = ">= 5.0.0"
+    }
+    helm = {
+      source = "hashicorp/helm"
+      version = ">= 2.13.2"
+    }
   }
 }
 
@@ -13,3 +21,10 @@ provider "kubernetes" {
 }
 
 provider "vault" { }
+
+provider "helm" {
+  kubernetes {
+    config_path    = "~/.kube/config"
+    config_context = "music"
+  }
+}
