@@ -7,8 +7,6 @@
   before_script:
     - set -e
 
-    - apk add --no-cache git
-
     - cd ${TF_ROOT}
 
     - echo "Cloning HashiCorp Vault Helm chart..."
