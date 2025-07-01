@@ -23,11 +23,6 @@
         -backend-config="retry_wait_min=5"
 
     - |
-      echo "Attempting to delete existing Minikube profile '$MINIKUBE_PROFILE'..."
-      minikube delete -p $MINIKUBE_PROFILE || true # The '|| true' ensures the script doesn't fail if the profile doesn't exist
-      echo "Minikube profile deletion complete (or profile did not exist)."
-
-    - |
       if ! minikube status -p $MINIKUBE_PROFILE | grep -q "Running"; then
         minikube start --memory=6656 --cpus=4 --driver=docker -p $MINIKUBE_PROFILE --wait=all -v=7
       else
