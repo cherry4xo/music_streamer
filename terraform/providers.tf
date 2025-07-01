@@ -20,11 +20,6 @@ provider "kubernetes" {
   config_context = "music"
 }
 
-provider "vault" { }
+provider "helm" { }
 
-provider "helm" {
-  kubernetes {
-    config_path    = "~/.kube/config"
-    config_context = "music"
-  }
-}
+provider "vault" { }
