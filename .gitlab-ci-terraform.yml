@@ -9,6 +9,8 @@
 
     - cd ${TF_ROOT}
 
+    - git clone https://github.com/hashicorp/vault-helm.git --depth 1
+
     - export TF_HTTP_USERNAME="gitlab-ci-token"
     - export TF_HTTP_PASSWORD="${CI_JOB_TOKEN}"
 
@@ -45,11 +47,6 @@
         echo "Skipping vault address port for plan/validate stage"
       fi
     - export VAULT_TOKEN="root"
-
-deploy-platform:
-  stage: deploy-platform
-  script:
-    - git clone https://github.com/hashicorp/vault-helm.git --depth 1
     
 validate_terraform:
   extends: .terraform-template
