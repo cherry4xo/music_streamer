@@ -177,3 +177,4 @@ pyrightconfig.json
 
 services/platform/hashicorp/pass_secrets.sh
 .terraform/
+environments/
