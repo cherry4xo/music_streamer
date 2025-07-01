@@ -1,3 +1,18 @@
+deploy-vault:
+  stage: deploy
+  image:
+    name: hashicorp/vault:latest
+    entrypoint:
+      - '/usr/bin/env'
+      - 'PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin'
+  tags:
+    - firstvds
+  before_script:
+    - apk add --no-cache git
+  script:
+    - echo "Cloning HashiCorp Helm chart"
+    - git clone https://github.com/hashicorp/vault-helm.git --depth 1
+
 .terraform-template:
   image: 
     name: registry.gitlab.com/gitlab-org/terraform-images/terraform:latest
@@ -7,7 +22,13 @@
   before_script:
     - set -e
 
+    - apk add --no-cache git
+
     - cd ${TF_ROOT}
+
+    - echo "Cloning HashiCorp Vault Helm chart..."
+    - rm -rf vault-helm
+    - git clone https://github.com/hashicorp/vault-helm.git --depth 1
 
     - export TF_HTTP_USERNAME="gitlab-ci-token"
     - export TF_HTTP_PASSWORD="${CI_JOB_TOKEN}"
