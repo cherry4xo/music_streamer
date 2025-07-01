@@ -4,6 +4,7 @@ variables:
   MINIKUBE_PROFILE: "music-streaming"
 
 stages:
+  - deploy-platform
   - build
   - validate
   - plan
