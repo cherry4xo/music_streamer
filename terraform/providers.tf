@@ -7,9 +7,9 @@ terraform {
   }
 }
 
-provider "kubernetes" { }
-
-provider "vault" {
-  address = "http://vault-internal:8200"
-  token = "root"
+provider "kubernetes" { 
+  config_path    = "~/.kube/config"
+  config_context = "music"
 }
+
+provider "vault" { }
