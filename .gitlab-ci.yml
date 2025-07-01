@@ -1,7 +1,7 @@
 variables:
   TF_ROOT: "terraform"
   TF_STATE_NAME: default
-  MINIKUBE_PROFILE: "misuc-streaming"
+  MINIKUBE_PROFILE: "music-streaming"
 
 stages:
   - build

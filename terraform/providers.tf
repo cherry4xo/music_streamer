@@ -17,9 +17,14 @@ terraform {
 
 provider "kubernetes" { 
   config_path    = "~/.kube/config"
-  config_context = "music"
+  config_context = "music-streaming"
 }
 
-provider "helm" { }
+provider "helm" {
+  kubernetes {
+    config_path    = "~/.kube/config"
+    config_context = "misuc-streaming"
+  }
+}
 
 provider "vault" { }
