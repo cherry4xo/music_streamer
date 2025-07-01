@@ -34,7 +34,15 @@ validate_terraform:
   script:
     - terraform validate
 
-plan_terraform:
+plan_for_merge_request_terraform:
+  extends: .terraform-template
+  stage: plan
+  script:
+    - terraform plan
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+
+plan_for_master_terraform:
   extends: .terraform-template
   stage: plan
   script:
@@ -44,7 +52,7 @@ plan_terraform:
     paths:
       - "${TF_ROOT}/plan.tfplan"
   rules:
-    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
 
 apply_terraform:
   extends: .terraform-template
@@ -52,7 +60,7 @@ apply_terraform:
   script:
     - terraform apply -input=false "plan.tfplan"
   dependencies:
-    - plan_terraform
+    - plan_for_master_terraform
   rules:
     - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
       when: manual
