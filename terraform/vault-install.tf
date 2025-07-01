@@ -4,8 +4,13 @@ resource "helm_release" "vault" {
   chart = "vault"
   namespace = "default"
 
-  set {
-    name = "server.dev.enabled"
-    value = "true"
-  }
+  values = [
+    yamlencode({
+      server = {
+        dev = {
+          enabled = true
+        }
+      }
+    })
+  ]
 }
