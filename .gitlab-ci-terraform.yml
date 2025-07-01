@@ -56,7 +56,7 @@ deploy-vault:
     - minikube update-context -p $MINIKUBE_PROFILE
     - export VAULT_ADDR=$(minikube service vault -p $MINIKUBE_PROFILE --url)
     - export VAULT_TOKEN="root"
-    - echo "Terraform will use vault at: ${VAULT_ADDR}"
+    - echo "Terraform will use vault at ${VAULT_ADDR}"
     
 validate_terraform:
   extends: .terraform-template
