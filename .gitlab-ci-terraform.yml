@@ -1,4 +1,41 @@
+.minikube-template:
+  tags:
+    - firstvds
+  before_script:
+    - set -e
+    - |
+      if ! minikube status -p $MINIKUBE_PROFILE | grep -q "Running"; then
+        minikube start --memory=6656 --cpus=4 --driver=docker -p $MINIKUBE_PROFILE --wait=all
+      fi
+    - minikube update-context -p $MINIKUBE_PROFILE
+
+    - |
+      echo "Waiting for Kubernetes API server..."
+      until kubectl get po &> /dev/null; do
+        sleep 1
+      done
+      echo "Kubernetes API server is running"
+
+load_images:
+  extends: .minikube-template
+  stage: load-images
+  image: docker:latest
+  services:
+    - docker:dind
+  script:
+    - echo "Logging into GitLab registry..."
+    - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
+    - echo "Pulling images from registry..."
+    - docker pull $CI_REGISTRY/$CI_PROJECT_PATH/users-auth:$CI_COMMIT_SHA
+    - docker pull $CI_REGISTRY/$CI_PROJECT_PATH/users-account:$CI_COMMIT_SHA
+    - echo "Loading images into Minikube..."
+    - minikube image load $CI_REGISTRY/$CI_PROJECT_PATH/users-auth:$CI_COMMIT_SHA
+    - minikube image load $CI_REGISTRY/$CI_PROJECT_PATH/users-account:$CI_COMMIT_SHA
+  rules:
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+
 .terraform-template:
+  extends: .minikube-template
   image: 
     name: registry.gitlab.com/gitlab-org/terraform-images/terraform:latest
     entrypoint: [""]
@@ -25,28 +62,35 @@
         -backend-config="retry_wait_min=5"
 
     - |
-      if ! minikube status -p $MINIKUBE_PROFILE | grep -q "Running"; then
-        minikube start --memory=6656 --cpus=4 --driver=docker -p $MINIKUBE_PROFILE --wait=all -v=7
-      else
-        echo "Minikube profile $MINIKUBE_PROFILE is already running"
-      fi
-    - minikube update-context -p $MINIKUBE_PROFILE
-
-    - |
-      echo "Waiting for Kubernetes API server..."
-      until kubectl get po &> /dev/null; do
-        sleep 1
-      done
-      echo "Kubernetes API server is running"
-
-    - |
-      if [[ "$CI_JOB_STAGE" == "apply" ]]; then
+      if [[ "$CI_JOB_STAGE" == "apply-apps" ]]; then
         export VAULT_ADDR=$(minikube service vault -p $MINIKUBE_PROFILE --url)
         echo "Terraform will use vault at: $VAULT_ADDR"
       else
         echo "Skipping vault address port for plan/validate stage"
       fi
     - export VAULT_TOKEN="root"
+
+apply_platform:
+  extends: .terraform-template
+  stage: apply-platform
+  script:
+    - echo "Applying platform services"
+    - terraform apply -auto-approve -target=helm_release.vault
+  rules:
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+      when: manual
+
+apply_apps:
+  extends: .terraform-template
+  stage: apply-apps
+  script:
+    - echo "Applying application services"
+    - terraform apply -input=false "plan.tfplan"
+  dependencies:
+    - plan_for_master_terraform
+  needs: ["apply_platform", "load_images"]
+  rules:
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
     
 validate_terraform:
   extends: .terraform-template
@@ -73,14 +117,3 @@ plan_for_master_terraform:
       - "${TF_ROOT}/plan.tfplan"
   rules:
     - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
-
-apply_terraform:
-  extends: .terraform-template
-  stage: apply
-  script:
-    - terraform apply -input=false "plan.tfplan"
-  dependencies:
-    - plan_for_master_terraform
-  rules:
-    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
-      when: manual

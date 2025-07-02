@@ -5,9 +5,11 @@ variables:
 
 stages:
   - build
+  - load-images
   - validate
   - plan
-  - apply
+  - apply-platform
+  - apply-apps
   - deploy-secrets
 
 include: '.gitlab-ci-terraform.yml'
@@ -21,7 +23,7 @@ include: '.gitlab-ci-terraform.yml'
     - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
   script:
     - cd $SERVICE_PATH
-    - docker build -t $CI_REGISTRY/$CI_PROJECT_PATH/$SERVICE_NAME:$CI_COMMIT_SHA .
+    - docker build --progress=plain -t $CI_REGISTRY/$CI_PROJECT_PATH/$SERVICE_NAME:$CI_COMMIT_SHA .
     - docker push $CI_REGISTRY/$CI_PROJECT_PATH/$SERVICE_NAME:$CI_COMMIT_SHA
   rules:
     - if: $CI_COMMIT_BRANCH == "master"
@@ -41,8 +43,9 @@ build-users-account:
     SERVICE_PATH: "services/business/users-account"
 
 deploy-secrets-to-vault:
+  extends: .minikube-template
   stage: deploy-secrets
-  needs: ["apply_terraform"]
+  needs: ["apply_apps"]
   image: 
     name: hashicorp/vault:latest
     entrypoint: [""]

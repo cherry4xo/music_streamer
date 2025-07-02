@@ -49,6 +49,6 @@ resource "kubernetes_service" "app_services" {
       target_port = each.value.container_port
     }
 
-    type = "LoadBalancer"
+    type = "NodePort"
   }
 }
