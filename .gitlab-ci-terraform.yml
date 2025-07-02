@@ -86,9 +86,13 @@ apply_apps:
   script:
     - echo "Applying application services"
     - terraform apply -input=false "plan.tfplan"
-  dependencies:
-    - plan_for_master_terraform
-  needs: ["apply-platform", "load-images"]
+  needs:
+    - job: plan_for_master_terraform
+      artifacts: true # This explicitly says: "Wait for this job AND download its artifacts"
+    - job: apply_platform
+      artifacts: false # We wait for this job, but it has no artifacts to download
+    - job: load_images
+      artifacts: false # We wait for this job, but it has no artifacts to download
   rules:
     - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
     

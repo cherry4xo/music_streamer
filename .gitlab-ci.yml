@@ -45,7 +45,7 @@ build-users-account:
 deploy-secrets-to-vault:
   extends: .minikube-template
   stage: deploy-secrets
-  needs: ["apply-apps"]
+  needs: ["apply_apps"]
   image: 
     name: hashicorp/vault:latest
     entrypoint: [""]
