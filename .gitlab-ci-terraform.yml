@@ -88,7 +88,7 @@ apply_apps:
     - terraform apply -input=false "plan.tfplan"
   dependencies:
     - plan_for_master_terraform
-  needs: ["apply_platform", "load_images"]
+  needs: ["apply-platform", "load-images"]
   rules:
     - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
     
