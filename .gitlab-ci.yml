@@ -64,8 +64,7 @@ deploy-secrets-to-vault:
 
     # setting up hashicorp vault
     - echo "Getting Vault URL from Minikube..."
-    - export VAULT_URL=$(minikube service vault --url)
-    - export VAULT_ADDR=$VAULT_URL
+    - export VAULT_ADDR="http://127.0.0.1:8200"
     - export VAULT_TOKEN="root"
     - echo "Logging into Vault at $VAULT_ADDR..."
     - vault login $VAULT_TOKEN
