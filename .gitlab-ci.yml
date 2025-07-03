@@ -9,8 +9,8 @@ stages:
   - validate
   - plan
   - apply-platform
-  - apply-apps
   - deploy-secrets
+  - apply-apps
 
 include: '.gitlab-ci-terraform.yml'
 
