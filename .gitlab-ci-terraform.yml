@@ -87,6 +87,8 @@ apply_apps:
     - echo "Applying application services"
     - terraform apply -input=false "plan.tfplan"
   needs:
+    - job: deploy-secrets-to-vault
+      artifacts: false
     - job: plan_for_master_terraform
       artifacts: true # This explicitly says: "Wait for this job AND download its artifacts"
     - job: apply_platform
