@@ -5,7 +5,7 @@ resource "kubernetes_service_account" "vault_auth_sa" {
     }
 }
 
-data "kubernetes_secret" "vault_auth_token_secret" {
+resource "kubernetes_secret" "vault_auth_token_secret" {
     metadata {
         name = "vault-auth-token"
         namespace = "default"
@@ -13,7 +13,7 @@ data "kubernetes_secret" "vault_auth_token_secret" {
           "kubernetes.io/service-account.name" = kubernetes_service_account.vault_auth_sa.metadata[0].name
         }
     }
-#    type = "kubernetes.io/service-account-token"
+   type = "kubernetes.io/service-account-token"
 }
 
 resource "vault_auth_backend" "kubernetes" {
