@@ -27,8 +27,8 @@ resource "vault_kubernetes_auth_backend_config" "config" {
 
     backend = vault_auth_backend.kubernetes.path
     kubernetes_host = "https://kubernetes.default.svc"
-    token_reviewer_jwt = data.kubernetes_secret.vault_auth_token_secret.data.token
-    kubernetes_ca_cert = base64decode(data.kubernetes_secret.vault_auth_token_secret.data["ca.crt"])
+    token_reviewer_jwt = resource.kubernetes_secret.vault_auth_token_secret.data.token
+    kubernetes_ca_cert = base64decode(resource.kubernetes_secret.vault_auth_token_secret.data["ca.crt"])
 }
 
 resource "vault_policy" "users_auth_policy" {
