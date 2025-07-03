@@ -51,10 +51,10 @@ deploy-secrets-to-vault:
     name: alpine/k8s:1.26.11
   tags:
     - firstvds
-  before_script:
-    - wget https://releases.hashicorp.com/vault/1.20.0/vault_1.20.0_linux_amd64.zip
-    - unzip vault_1.20.0_linux_amd64.zip
-    - mv vault /usr/local/bin
+  # before_script:
+  #   - wget https://releases.hashicorp.com/vault/1.20.0/vault_1.20.0_linux_amd64.zip
+  #   - unzip vault_1.20.0_linux_amd64.zip
+  #   - mv vault /usr/local/bin
   script:
     - set -e
     - echo "Setting up secure tunnel to Vault..."
