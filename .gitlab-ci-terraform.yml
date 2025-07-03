@@ -19,12 +19,12 @@
 load_images:
   extends: .minikube-template
   stage: load-images
-  image: docker:latest
-  services:
-    - docker:dind
+  # image: docker:latest
+  # services:
+  #   - docker:dind
   script:
     - echo "Logging into GitLab registry..."
-    - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
+    - echo "$CI_REGISTRY_PASSWORD" | docker login $CI_REGISTRY -u $CI_REGISTRY_USER --password-stdin
     - echo "Pulling images from registry..."
     - docker pull $CI_REGISTRY/$CI_PROJECT_PATH/users-auth:$CI_COMMIT_SHA
     - docker pull $CI_REGISTRY/$CI_PROJECT_PATH/users-account:$CI_COMMIT_SHA
