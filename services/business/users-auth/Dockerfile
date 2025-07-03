@@ -1,4 +1,4 @@
-FROM python:3.11-slim-buster
+FROM python:3.13-slim-bullseye
 
 ENV PYTHONUNBUFFERED=1
 ENV PYTHONPATH=/home/code/ PYTHONHASHSEED=0
