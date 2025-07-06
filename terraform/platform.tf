@@ -11,6 +11,32 @@ locals {
             password = var.account_db_pass
         }
     }
+
+    postgres_helm_values = [
+      {
+        name  = "auth.postgresPassword"
+        value = var.postgres_admin_password
+      }
+    ]
+  
+    # Now, merge in the dynamic settings for each database, user, and password
+    # The 'flatten' function is key here. It takes a list of lists and makes it a single flat list.
+    postgres_db_settings = flatten([
+      for key, config in local.postgres_configs : [
+        {
+          name  = "auth.databases[${key}]"
+          value = config.db_name
+        },
+        {
+          name  = "auth.usernames[${key}]"
+          value = config.username
+        },
+        {
+          name  = "auth.passwords[${key}]"
+          value = config.password
+        }
+      ]
+    ])
 }
 
 resource "helm_release" "postgres" {
@@ -19,34 +45,10 @@ resource "helm_release" "postgres" {
     chart = "postgresql"
     version = "13.2.27"
 
-    dynamic "set" {
-      for_each = local.postgres_configs
-      content {
-        name = "auth.databases[${iterator.key}]"
-        value = set.value.db_name
-      }
-    }
-
-    dynamic "set" {
-      for_each = local.postgres_configs
-      content {
-        name = "auth.usernames[${iterator.key}]"
-        value = set.value.username
-      }
-    }
-
-    dynamic "set" {
-      for_each = local.postgres_configs
-      content {
-        name = "auth.passwords[${iterator.key}]"
-        value = set.value.password
-      }
-    }
-
-    set {
-      name = "auth.postgresPassword"
-      value = set.postgres_admin_password
-    }
+    set = concat(
+        local.postgres_helm_values,
+        local.postgres_db_settings,
+    )
 }
 
 resource "helm_release" "redis" {
@@ -55,10 +57,12 @@ resource "helm_release" "redis" {
     chart = "redis"
     version = "18.6.0"
 
-    set {
-        name = "auth.password"
-        value = var.redis_password
-    }
+    set = [
+        {
+            name = "auth.password"
+            value = var.redis_password
+        }
+    ]
 }
 
 resource "helm_release" "kafka" {
