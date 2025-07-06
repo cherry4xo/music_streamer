@@ -68,17 +68,24 @@ deploy-secrets-to-vault:
     - export VAULT_TOKEN="root"
     - echo "Logging into Vault at $VAULT_ADDR..."
     - vault login $VAULT_TOKEN
+    - echo "Writing secrets for platform..."
+    - |
+      vault kv put secret/platform \
+        redis_url="redis://${TF_VAR_redis_password}@redis-master.default.svc.cluster.local:6379" \
+        kafka_bootstrap_servers="kafka.default.svc.cluster.local:9092"
+
     - echo "Writing secrets for users-auth..."
     - |
-      vault kv put secret/users-auth db_url="$USERS_AUTH_POSTGRES_URL" \
+      vault kv put secret/users-auth db_url="postgresql://auth_user:${GITLAB_VAR_AUTH_DB_PASS}@postgres-postgresql.default.svc.cluster.local:5432/users_auth_db" \
                                      secret_key="$USERS_AUTH_SECRET_KEY" \
                                      client_id="$USERS_AUTH_CLIENT_ID" \
                                      redis_url="$USERS_AUTH_REDIS_URL" \
                                      access_token_expire_minutes="$ACCESS_TOKEN_EXPIRE_MINUTES" \
                                      refresh_token_expire_minutes="$REFRESH_TOKEN_EXPIRE_MINUTES"
+
     - echo "Writing secrets for users-account..."
     - |
-      vault kv put secret/users-account db_url="USERS_ACCOUNT_PORTGRES_URL" \
+      vault kv put secret/users-account db_url="postgresql://account_user:${GITLAB_VAR_ACCOUNT_DB_PASS}@postgres-postgresql.default.svc.cluster.local:5432/users_account_db" \
                                         secret_key="$USERS_ACCOUNT_SECRET_KEY" \
                                         client_id="$USERS_ACCOUNT_CLIENT_ID" \
                                         redis_url="$USERS_ACCOUNT_REDIS_URL" \

@@ -86,15 +86,31 @@ apply_apps:
   script:
     - echo "Applying application services"
     - terraform apply -input=false "plan.tfplan"
+
+    - echo "Waiting for deployments to roll out..."
+    - sleep 15
+
+    - echo "--- Final pod status ---"
+    - kubectl get pods -n default -o wide
+    
+    - echo "--- Describing any failed pods ---"
+    - |
+      kubectl get pods --field-selector=status.phase!=Running,status.phase!=Succeeded -o jsonpath='{.items[*].metadata.name}' | xargs -r -n 1 kubectl describe pod || true
+
+    - echo "--- Final logs from users-auth pod ---"
+    - kubectl logs -l app=users-auth --tail=100 || true
+    
+    - echo "--- Final logs from users-account pod ---"
+    - kubectl logs -l app=users-account --tail=100 || true
   needs:
     - job: deploy-secrets-to-vault
       artifacts: false
     - job: plan_for_master_terraform
-      artifacts: true # This explicitly says: "Wait for this job AND download its artifacts"
+      artifacts: true
     - job: apply_platform
-      artifacts: false # We wait for this job, but it has no artifacts to download
+      artifacts: false
     - job: load_images
-      artifacts: false # We wait for this job, but it has no artifacts to download
+      artifacts: false
   rules:
     - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
     
