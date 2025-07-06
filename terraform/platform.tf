@@ -15,7 +15,7 @@ locals {
 
 resource "helm_release" "postgres" {
     name = "postgres"
-    repository = data.helm_repository.bitnami.url
+    repository = "https://charts.bitnami.com/bitnami"
     chart = "postgresql"
     version = "13.2.27"
 
@@ -51,7 +51,7 @@ resource "helm_release" "postgres" {
 
 resource "helm_release" "redis" {
     name = "redis"
-    repository = data.helm_repository.bitnami.url
+    repository = "https://charts.bitnami.com/bitnami"
     chart = "redis"
     version = "18.6.0"
 
@@ -63,7 +63,7 @@ resource "helm_release" "redis" {
 
 resource "helm_release" "kafka" {
     name = "kafka"
-    repository = data.helm_repository.bitnami.url
+    repository = "https://charts.bitnami.com/bitnami"
     chart = "kafka"
     version = "26.3.1"
 }
