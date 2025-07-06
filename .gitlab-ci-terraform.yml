@@ -48,6 +48,9 @@ load_images:
 
     - git clone https://github.com/hashicorp/vault-helm.git --depth 1
 
+    - rm -rf bitnami-charts
+    - git clone https://github.com/bitnami/charts.git --branch main bitnami-charts --depth 1
+
     - export TF_HTTP_USERNAME="gitlab-ci-token"
     - export TF_HTTP_PASSWORD="${CI_JOB_TOKEN}"
 
