@@ -51,7 +51,7 @@ resource "helm_release" "postgres" {
 
 resource "helm_release" "redis" {
     name = "redis"
-    chart = "./bitname-charts/bitnami/redis"
+    chart = "./bitnami-charts/bitnami/redis"
 
     set = [
         {

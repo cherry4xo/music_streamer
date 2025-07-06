@@ -51,6 +51,14 @@ load_images:
     - rm -rf bitnami-charts
     - git clone https://github.com/bitnami/charts.git --branch main bitnami-charts --depth 1
 
+    - echo "Building local Helm dependencies..."
+    - CHARTS_WITH_DEPS=("kafka" "postgresql" "redis")
+    - |
+      for chart in "${CHARTS_WITH_DEPS[@]}"; do
+        echo "--> Building dependencies for $chart..."
+        helm dependency build ./bitnami-charts/bitnami/$chart
+      done
+
     - export TF_HTTP_USERNAME="gitlab-ci-token"
     - export TF_HTTP_PASSWORD="${CI_JOB_TOKEN}"
 
