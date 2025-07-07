@@ -21,27 +21,26 @@
     entrypoint: [""]
   tags:
     - firstvds
-  before_script:
-    - set -e
-    - minikube delete -p $MINIKUBE_PROFILE || true
-    - |
+  script:
+    - &base-infra-setup |
+      set -e
+      minikube delete -p $MINIKUBE_PROFILE || true
       echo "Starting a fresh Minikube cluster..."
       minikube start --memory=6656 --cpus=4 --driver=docker -p $MINIKUBE_PROFILE --wait=all
-    - minikube update-context -p $MINIKUBE_PROFILE
-    - cd ${TF_ROOT}
-    - export TF_HTTP_USERNAME="gitlab-ci-token"
-    - export TF_HTTP_PASSWORD="${CI_JOB_TOKEN}"
-    - export GITLAB_TF_ADDRESS=${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/terraform/state/${TF_STATE_NAME}
-    - rm -rf vault-helm bitnami-charts
-    - git clone https://github.com/hashicorp/vault-helm.git --depth 1
-    - git clone https://github.com/bitnami/charts.git --branch main bitnami-charts --depth 1
-    - |
+      minikube update-context -p $MINIKUBE_PROFILE
+      cd ${TF_ROOT}
+      export TF_HTTP_USERNAME="gitlab-ci-token"
+      export TF_HTTP_PASSWORD="${CI_JOB_TOKEN}"
+      export GITLAB_TF_ADDRESS=${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/terraform/state/${TF_STATE_NAME}
+      rm -rf vault-helm bitnami-charts
+      git clone https://github.com/hashicorp/vault-helm.git --depth 1
+      git clone https://github.com/bitnami/charts.git --branch main bitnami-charts --depth 1
       CHARTS_WITH_DEPS=("kafka" "postgresql" "redis")
       for chart in "${CHARTS_WITH_DEPS[@]}"; do
         echo "--> Building dependencies for $chart..."
         helm dependency build ./bitnami-charts/bitnami/$chart
       done
-    - terraform init -reconfigure -upgrade
+      terraform init -reconfigure -upgrade
 
 # --- JOB DEFINITIONS ---
 
@@ -56,12 +55,16 @@ build-users-account:
 validate:
   extends: .infra-template
   stage: validate
+  before_script:
+    - !reference [.infra-template, script]
   script:
     - terraform validate
 
 plan:
   extends: .infra-template
   stage: plan
+  before_script:
+    - !reference [.infra-template, script]
   script:
     - terraform plan -out="plan.tfplan"
   artifacts:
@@ -73,6 +76,8 @@ plan:
 apply-vault:
   extends: .infra-template
   stage: apply-vault
+  before_script:
+    - !reference [.infra-template, script]
   script:
     - terraform apply -auto-approve -target=resource.helm_release.vault
   rules:
@@ -84,6 +89,8 @@ seed-vault:
   stage: seed-vault
   needs: 
      - job: apply-vault
+  before_script:
+    - !reference [.infra-template, script]
   script:
     - echo "Setting up secure tunnel to Vault..."
     - kubectl port-forward svc/vault 8200:8200 &
@@ -111,6 +118,7 @@ apply-all:
   extends: .infra-template
   stage: apply-all
   before_script:
+    - !reference [.infra-template, script]
     - echo "Loading application images into Minikube..."
     - echo "$CI_REGISTRY_PASSWORD" | docker login $CI_REGISTRY -u $CI_REGISTRY_USER --password-stdin
     - minikube image load $CI_REGISTRY/$CI_PROJECT_PATH/users-auth:$IMAGE_TAG
