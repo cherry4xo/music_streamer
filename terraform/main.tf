@@ -21,7 +21,6 @@ resource "kubernetes_deployment" "app_deployments" {
         container {
           name = each.key
           image = each.value.image
-          image_pull_policy = "Never"
 
           port {
             container_port = each.value.container_port

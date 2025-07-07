@@ -1,0 +1,142 @@
+# --- TEMPLATES ---
+
+.build-template:
+  stage: build
+  image: docker:latest
+  services:
+    - docker:dind
+  before_script:
+    - echo "$CI_REGISTRY_PASSWORD" | docker login $CI_REGISTRY -u $CI_REGISTRY_USER --password-stdin
+  script:
+    - cd $SERVICE_PATH
+    - docker build --progress=plain -t $CI_REGISTRY/$CI_PROJECT_PATH/$SERVICE_NAME:$IMAGE_TAG .
+    - docker push $CI_REGISTRY/$CI_PROJECT_PATH/$SERVICE_NAME:$IMAGE_TAG
+  rules:
+    - if: $CI_COMMIT_BRANCH == "master"
+      when: on_success
+
+.infra-template:
+  image:
+    name: registry.gitlab.com/gitlab-org/terraform-images/stable
+    entrypoint: [""]
+  tags:
+    - firstvds
+  before_script:
+    - set -e
+    - minikube delete -p $MINIKUBE_PROFILE || true
+    - |
+      echo "Starting a fresh Minikube cluster..."
+      minikube start --memory=6656 --cpus=4 --driver=docker -p $MINIKUBE_PROFILE --wait=all
+    - minikube update-context -p $MINIKUBE_PROFILE
+    - cd ${TF_ROOT}
+    - export TF_HTTP_USERNAME="gitlab-ci-token"
+    - export TF_HTTP_PASSWORD="${CI_JOB_TOKEN}"
+    - export GITLAB_TF_ADDRESS=${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/terraform/state/${TF_STATE_NAME}
+    - rm -rf vault-helm bitnami-charts
+    - git clone https://github.com/hashicorp/vault-helm.git --depth 1
+    - git clone https://github.com/bitnami/charts.git --branch main bitnami-charts --depth 1
+    - |
+      CHARTS_WITH_DEPS=("kafka" "postgresql" "redis")
+      for chart in "${CHARTS_WITH_DEPS[@]}"; do
+        echo "--> Building dependencies for $chart..."
+        helm dependency build ./bitnami-charts/bitnami/$chart
+      done
+    - terraform init -reconfigure -upgrade
+
+# --- JOB DEFINITIONS ---
+
+build-users-auth:
+  extends: .build-template
+  variables: { SERVICE_NAME: "users-auth", SERVICE_PATH: "services/business/users-auth" }
+
+build-users-account:
+  extends: .build-template
+  variables: { SERVICE_NAME: "users-account", SERVICE_PATH: "services/business/users-account" }
+
+validate:
+  extends: .infra-template
+  stage: validate
+  script:
+    - terraform validate
+
+plan:
+  extends: .infra-template
+  stage: plan
+  script:
+    - terraform plan -out="plan.tfplan"
+  artifacts:
+    paths:
+      - "${TF_ROOT}/plan.tfplan"
+  rules:
+    - if: $CI_COMMIT_BRANCH == "master"
+
+apply-vault:
+  extends: .infra-template
+  stage: apply-vault
+  script:
+    - terraform apply -auto-approve -target=resource.helm_release.vault
+  rules:
+    - if: $CI_COMMIT_BRANCH == "master"
+      when: manual
+
+seed-vault:
+  extends: .infra-template
+  stage: seed-vault
+  needs: 
+     - job: apply-vault
+  script:
+    - echo "Setting up secure tunnel to Vault..."
+    - kubectl port-forward svc/vault 8200:8200 &
+    - sleep 5
+    - export VAULT_ADDR='http://127.0.0.1:8200'
+    - export VAULT_TOKEN='root'
+    - vault login $VAULT_TOKEN
+    - echo "Seeding secrets into Vault..."
+    - |
+      vault kv put secret/platform/postgres \
+        admin_password="$GITLAB_VAR_POSTGRES_ADMIN_PASS" \
+        auth_db_name="users_auth_db" \
+        auth_db_user="auth_user" \
+        auth_db_pass="$GITLAB_VAR_AUTH_DB_PASS" \
+        account_db_name="users_account_db" \
+        account_db_user="account_user" \
+        account_db_pass="$GITLAB_VAR_ACCOUNT_DB_PASS"
+    - vault kv put secret/platform/redis password="$GITLAB_VAR_REDIS_PASS"
+    - kill %1
+  rules:
+    - if: $CI_COMMIT_BRANCH == "master"
+      when: manual
+
+apply-all:
+  extends: .infra-template
+  stage: apply-all
+  before_script:
+    - echo "Loading application images into Minikube..."
+    - echo "$CI_REGISTRY_PASSWORD" | docker login $CI_REGISTRY -u $CI_REGISTRY_USER --password-stdin
+    - minikube image load $CI_REGISTRY/$CI_PROJECT_PATH/users-auth:$IMAGE_TAG
+    - minikube image load $CI_REGISTRY/$CI_PROJECT_PATH/users-account:$IMAGE_TAG
+    - echo "Configuring Vault provider for Terraform..."
+    - kubectl port-forward svc/vault 8200:8200 &
+    - sleep 5
+    - export VAULT_ADDR='http://127.0.0.1:8200'
+    - export VAULT_TOKEN='root'
+  script:
+    - terraform apply -input=false "plan.tfplan"
+    - kill %1
+  needs:
+    - job: plan
+      artifacts: true
+    - job: seed-vault
+  rules:
+    - if: $CI_COMMIT_BRANCH == "master"
+
+debug:
+  extends: .infra-template
+  stage: debug
+  script:
+    - kubectl get pods -o wide
+    - |
+      kubectl get pods --field-selector=status.phase!=Running,status.phase!=Succeeded -o jsonpath='{.items[*].metadata.name}' | xargs -r -n 1 kubectl describe pod
+  rules:
+    - if: $CI_COMMIT_BRANCH == "master"
+      when: manual

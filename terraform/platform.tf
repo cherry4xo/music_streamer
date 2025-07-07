@@ -1,64 +1,57 @@
-locals {
-    postgres_configs = {
-        "auth" = {
-            db_name = var.auth_db_name
-            username = var.auth_db_user
-            password = var.auth_db_pass
-        },
-        "account" = {
-            db_name = var.account_db_name
-            username = var.account_db_user
-            password = var.account_db_pass
-        }
-    }
+data "vault_generic_secret" "postgres_credentials" {
+  path = "secret/data/platform/postgres"
+}
 
-    postgres_helm_values = [
-      {
-        name  = "auth.postgresPassword"
-        value = var.postgres_admin_password
-      }
-    ]
-  
-    # Now, merge in the dynamic settings for each database, user, and password
-    # The 'flatten' function is key here. It takes a list of lists and makes it a single flat list.
-    postgres_db_settings = flatten([
-      for key, config in local.postgres_configs : [
-        {
-          name  = "auth.databases[${key}]"
-          value = config.db_name
-        },
-        {
-          name  = "auth.usernames[${key}]"
-          value = config.username
-        },
-        {
-          name  = "auth.passwords[${key}]"
-          value = config.password
-        }
-      ]
-    ])
+data "vault_generic_secret" "redis_credentials" {
+  path = "secret/data/platform/redis"
 }
 
 resource "helm_release" "postgres" {
-    name = "postgres"
-    chart = "./bitnami-charts/bitnami/postgresql"
+  name = "postgres"
+  repository = "https://charts.bitnami.com/bitnami"
+  chart = "postgresql"
+  version = "13.2.27"
 
-    set = concat(
-        local.postgres_helm_values,
-        local.postgres_db_settings,
-    )
+  set {
+    name  = "auth.postgresPassword"
+    value = data.vault_generic_secret.postgres_credentials.data["admin_password"]
+  }
+  set {
+    name  = "auth.databases[0]"
+    value = data.vault_generic_secret.postgres_credentials.data["auth_db_name"]
+  }
+  set {
+    name  = "auth.usernames[0]"
+    value = data.vault_generic_secret.postgres_credentials.data["auth_db_user"]
+  }
+  set {
+    name  = "auth.passwords[0]"
+    value = data.vault_generic_secret.postgres_credentials.data["auth_db_pass"]
+  }
+  set {
+    name  = "auth.databases[1]"
+    value = data.vault_generic_secret.postgres_credentials.data["account_db_name"]
+  }
+  set {
+    name  = "auth.usernames[1]"
+    value = data.vault_generic_secret.postgres_credentials.data["account_db_user"]
+  }
+  set {
+    name  = "auth.passwords[1]"
+    value = data.vault_generic_secret.postgres_credentials.data["account_db_pass"]
+  }
 }
 
 resource "helm_release" "redis" {
-    name = "redis"
-    chart = "./bitnami-charts/bitnami/redis"
+  name       = "redis"
+  repository = "https://charts.bitnami.com/bitnami"
+  chart      = "redis"
+  version    = "18.6.0"
 
-    set = [
-        {
-            name = "auth.password"
-            value = var.redis_password
-        }
-    ]
+  set {
+    name  = "auth.password"
+    value = tostring(data.vault_generic_secret.redis_credentials.data["password"])
+  }
 }
 
 resource "helm_release" "kafka" {

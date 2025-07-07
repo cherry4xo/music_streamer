@@ -1,104 +1,16 @@
 variables:
   TF_ROOT: "terraform"
-  TF_STATE_NAME: default
+  TF_STATE_NAME: "default"
   MINIKUBE_PROFILE: "music-streaming"
+  IMAGE_TAG: $CI_COMMIT_SHA
 
 stages:
   - build
-  - load-images
   - validate
   - plan
-  - apply-platform
-  - deploy-secrets
-  - apply-apps
+  - apply-vault
+  - seed-vault
+  - apply-all
+  - debug
 
-include: '.gitlab-ci-terraform.yml'
-
-.build-template:
-  stage: build
-  image: docker:latest
-  services:
-    - docker:dind
-  before_script:
-    - echo "$CI_REGISTRY_PASSWORD" | docker login $CI_REGISTRY -u $CI_REGISTRY_USER --password-stdin
-  script:
-    - cd $SERVICE_PATH
-    - docker build --progress=plain -t $CI_REGISTRY/$CI_PROJECT_PATH/$SERVICE_NAME:$CI_COMMIT_SHA .
-    - docker push $CI_REGISTRY/$CI_PROJECT_PATH/$SERVICE_NAME:$CI_COMMIT_SHA
-  rules:
-    - if: $CI_COMMIT_BRANCH == "master"
-      changes:
-        - $SERVICE_PATH/**/*
-    - if: $CI_COMMIT_BRANCH == "master"
-      when: manual
-
-build-users-auth:
-  extends: .build-template
-  variables:
-    SERVICE_NAME: "users-auth"
-    SERVICE_PATH: "services/business/users-auth"
-
-build-users-account:
-  extends: .build-template
-  variables:
-    SERVICE_NAME: "users-account"
-    SERVICE_PATH: "services/business/users-account"
-
-deploy-secrets-to-vault:
-  extends: .minikube-template
-  stage: deploy-secrets
-  image: 
-    name: alpine/k8s:1.26.11
-  tags:
-    - firstvds
-  # before_script:
-  #   - wget https://releases.hashicorp.com/vault/1.20.0/vault_1.20.0_linux_amd64.zip
-  #   - unzip vault_1.20.0_linux_amd64.zip
-  #   - mv vault /usr/local/bin
-  script:
-    - set -e
-    - echo "Setting up secure tunnel to Vault..."
-    - kubectl port-forward svc/vault 8200:8200 &
-
-    - sleep 5
-
-    # setting up hashicorp vault
-    - echo "Getting Vault URL from Minikube..."
-    - export VAULT_ADDR="http://127.0.0.1:8200"
-    - export VAULT_TOKEN="root"
-    - echo "Logging into Vault at $VAULT_ADDR..."
-    - vault login $VAULT_TOKEN
-    - echo "Writing secrets for platform..."
-    - |
-      vault kv put secret/platform \
-        redis_url="redis://${TF_VAR_redis_password}@redis-master.default.svc.cluster.local:6379" \
-        kafka_bootstrap_servers="kafka.default.svc.cluster.local:9092"
-
-    - echo "Writing secrets for users-auth..."
-    - |
-      vault kv put secret/users-auth db_url="postgresql://auth_user:${GITLAB_VAR_AUTH_DB_PASS}@postgres-postgresql.default.svc.cluster.local:5432/users_auth_db" \
-                                     secret_key="$USERS_AUTH_SECRET_KEY" \
-                                     client_id="$USERS_AUTH_CLIENT_ID" \
-                                     redis_url="$USERS_AUTH_REDIS_URL" \
-                                     access_token_expire_minutes="$ACCESS_TOKEN_EXPIRE_MINUTES" \
-                                     refresh_token_expire_minutes="$REFRESH_TOKEN_EXPIRE_MINUTES"
-
-    - echo "Writing secrets for users-account..."
-    - |
-      vault kv put secret/users-account db_url="postgresql://account_user:${GITLAB_VAR_ACCOUNT_DB_PASS}@postgres-postgresql.default.svc.cluster.local:5432/users_account_db" \
-                                        secret_key="$USERS_ACCOUNT_SECRET_KEY" \
-                                        client_id="$USERS_ACCOUNT_CLIENT_ID" \
-                                        redis_url="$USERS_ACCOUNT_REDIS_URL" \
-                                        email="$USERS_ACCOUNT_EMAIL" \
-                                        smtp_host="$USERS_ACCOUNT_SMTP_HOST" \
-                                        smtp_port="$USERS_ACCOUNT_SMTP_PORT" \
-                                        smtp_login="$USERS_ACCOUNT_SMTP_LOGIN" \
-                                        smtp_password="$USERS_ACCOUNT_SMTP_PASSWORD" \
-                                        email_confirmation_letter_expire_seconds="$USERS_ACCOUNT_EMAIL_COMFIRMATION_LETTER_EXPIRE_MINUTES"
-
-    - kill %1
-
-    - echo "Secrets deployed to Vault successfully"
-  rules:
-    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
-      when: manual
+include: '.gitlab-ci-jobs.yml'
