@@ -40,7 +40,14 @@
         echo "--> Building dependencies for $chart..."
         helm dependency build ./bitnami-charts/bitnami/$chart
       done
-      terraform init -reconfigure -upgrade
+      - |
+      terraform init -reconfigure -upgrade \
+        -backend-config="address=${GITLAB_TF_ADDRESS}" \
+        -backend-config="lock_address=${GITLAB_TF_ADDRESS}/lock" \
+        -backend-config="unlock_address=${GITLAB_TF_ADDRESS}/lock" \
+        -backend-config="lock_method=POST" \
+        -backend-config="unlock_method=DELETE" \
+        -backend-config="retry_wait_min=5"
 
 # --- JOB DEFINITIONS ---
 
