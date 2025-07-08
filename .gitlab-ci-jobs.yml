@@ -21,7 +21,7 @@
     entrypoint: [""]
   tags:
     - firstvds
-  script:
+  before_script:
     - &base-infra-setup |
       set -e
       minikube delete -p $MINIKUBE_PROFILE || true
@@ -62,16 +62,12 @@ build-users-account:
 validate:
   extends: .infra-template
   stage: validate
-  before_script:
-    - !reference [.infra-template, script]
   script:
     - terraform validate
 
 plan:
   extends: .infra-template
   stage: plan
-  before_script:
-    - !reference [.infra-template, script]
   script:
     - terraform plan -out="plan.tfplan"
   artifacts:
@@ -83,8 +79,6 @@ plan:
 apply-vault:
   extends: .infra-template
   stage: apply-vault
-  before_script:
-    - !reference [.infra-template, script]
   script:
     - terraform apply -auto-approve -target=resource.helm_release.vault
   rules:
@@ -96,8 +90,6 @@ seed-vault:
   stage: seed-vault
   needs: 
      - job: apply-vault
-  before_script:
-    - !reference [.infra-template, script]
   script:
     - echo "Setting up secure tunnel to Vault..."
     - kubectl port-forward svc/vault 8200:8200 &
@@ -125,7 +117,7 @@ apply-all:
   extends: .infra-template
   stage: apply-all
   before_script:
-    - !reference [.infra-template, script]
+    - !reference [.infra-template, before_script]
     - echo "Loading application images into Minikube..."
     - echo "$CI_REGISTRY_PASSWORD" | docker login $CI_REGISTRY -u $CI_REGISTRY_USER --password-stdin
     - minikube image load $CI_REGISTRY/$CI_PROJECT_PATH/users-auth:$IMAGE_TAG
