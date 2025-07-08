@@ -117,7 +117,6 @@ apply-all:
   extends: .infra-template
   stage: apply-all
   before_script:
-    - !reference [.infra-template, before_script]
     - echo "Loading application images into Minikube..."
     - echo "$CI_REGISTRY_PASSWORD" | docker login $CI_REGISTRY -u $CI_REGISTRY_USER --password-stdin
     - minikube image load $CI_REGISTRY/$CI_PROJECT_PATH/users-auth:$IMAGE_TAG
