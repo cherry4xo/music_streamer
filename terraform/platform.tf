@@ -8,9 +8,7 @@ data "vault_generic_secret" "redis_credentials" {
 
 resource "helm_release" "postgres" {
   name = "postgres"
-  repository = "https://charts.bitnami.com/bitnami"
-  chart = "postgresql"
-  version = "13.2.27"
+  chart = "./bitnami-charts/bitnami/postgresql"
 
   set = [
     {
@@ -48,9 +46,7 @@ resource "helm_release" "postgres" {
 
 resource "helm_release" "redis" {
   name       = "redis"
-  repository = "https://charts.bitnami.com/bitnami"
-  chart      = "redis"
-  version    = "18.6.0"
+  chart = "./bitnami-charts/bitnami/redis"
 
   set = [
     {
