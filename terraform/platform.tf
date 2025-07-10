@@ -14,37 +14,37 @@ resource "helm_release" "postgres" {
     {
       name  = "auth.postgresPassword"
       value = var.postgres_admin_password
-      type = string
+      type = "string"
     },
     {
       name  = "auth.databases[0]"
       value = var.auth_db_name
-      type = string
+      type = "string"
     },
     {
       name  = "auth.usernames[0]"
       value = var.auth_db_user
-      type = string
+      type = "string"
     },
     {
       name  = "auth.passwords[0]"
       value = var.auth_db_pass
-      type = string
+      type = "string"
     },
     {
       name  = "auth.databases[1]"
       value = var.account_db_name
-      type = string
+      type = "string"
     },
     {
       name  = "auth.usernames[1]"
       value = var.account_db_user
-      type = string
+      type = "string"
     },
     {
       name  = "auth.passwords[1]"
       value = var.account_db_pass
-      type = string
+      type = "string"
     }
   ]
 
@@ -59,7 +59,7 @@ resource "helm_release" "redis" {
     {
       name  = "auth.password"
       value = var.redis_password
-      type = string
+      type = "string"
     }
   ]
 }
