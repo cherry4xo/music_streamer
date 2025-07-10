@@ -1,3 +1,11 @@
+data "vault_generic_secret" "users_auth_secrets" {
+  path = "secret/data/users-auth"
+}
+
+data "vault_generic_secret" "users_account_secrets" {
+  path = "secret/data/users-account"
+}
+
 resource "kubernetes_deployment" "app_deployments" {
   for_each = var.services
 

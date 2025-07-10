@@ -15,31 +15,31 @@ resource "helm_release" "postgres" {
   set = [
     {
       name  = "auth.postgresPassword"
-      value = data.vault_generic_secret.postgres_credentials.data["admin_password"]
+      value = var.postgres_admin_password
     },
     {
       name  = "auth.databases[0]"
-      value = data.vault_generic_secret.postgres_credentials.data["auth_db_name"]
+      value = var.auth_db_name
     },
     {
       name  = "auth.usernames[0]"
-      value = data.vault_generic_secret.postgres_credentials.data["auth_db_user"]
+      value = var.auth_db_user
     },
     {
       name  = "auth.passwords[0]"
-      value = data.vault_generic_secret.postgres_credentials.data["auth_db_pass"]
+      value = var.auth_db_pass
     },
     {
       name  = "auth.databases[1]"
-      value = data.vault_generic_secret.postgres_credentials.data["account_db_name"]
+      value = var.account_db_name
     },
     {
       name  = "auth.usernames[1]"
-      value = data.vault_generic_secret.postgres_credentials.data["account_db_user"]
+      value = var.account_db_user
     },
     {
       name  = "auth.passwords[1]"
-      value = data.vault_generic_secret.postgres_credentials.data["account_db_pass"]
+      value = var.account_db_pass
     }
   ]
 
@@ -55,7 +55,7 @@ resource "helm_release" "redis" {
   set = [
     {
       name  = "auth.password"
-      value = tostring(data.vault_generic_secret.redis_credentials.data["password"])
+      value = tostring(var.redis_password)
     }
   ]
 }

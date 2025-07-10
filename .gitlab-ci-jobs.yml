@@ -1,5 +1,31 @@
 # --- TEMPLATES ---
 
+.infra-template-before-script-commands: &infra_template_before_script_commands
+  - | # All commands consolidated into one block for consistent execution and `set -e`
+    set -e # This now applies to all subsequent commands in this block
+    echo "Starting a fresh Minikube cluster..."
+    minikube start --memory=6656 --cpus=4 --driver=docker -p $MINIKUBE_PROFILE --wait=all
+    minikube update-context -p $MINIKUBE_PROFILE
+    cd ${TF_ROOT}
+    export TF_HTTP_USERNAME="gitlab-ci-token"
+    export TF_HTTP_PASSWORD="${CI_JOB_TOKEN}"
+    export GITLAB_TF_ADDRESS=${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/terraform/state/${TF_STATE_NAME}
+    rm -rf vault-helm bitnami-charts
+    git clone https://github.com/hashicorp/vault-helm.git --depth 1
+    git clone https://github.com/bitnami/charts.git --branch main bitnami-charts --depth 1
+    CHARTS_WITH_DEPS=("kafka" "postgresql" "redis")
+    for chart in "${CHARTS_WITH_DEPS[@]}"; do
+      echo "--> Building dependencies for $chart..."
+      helm dependency build ./bitnami-charts/bitnami/$chart
+    done
+    terraform init -reconfigure -upgrade \
+      -backend-config="address=${GITLAB_TF_ADDRESS}" \
+      -backend-config="lock_address=${GITLAB_TF_ADDRESS}/lock" \
+      -backend-config="unlock_address=${GITLAB_TF_ADDRESS}/lock" \
+      -backend-config="lock_method=POST" \
+      -backend-config="unlock_method=DELETE" \
+      -backend-config="retry_wait_min=5"
+
 .build-template:
   stage: build
   image: docker:latest
@@ -23,38 +49,18 @@
   tags:
     - firstvds
   before_script:
-      - | # All commands consolidated into one block for consistent execution and `set -e`
-        set -e # This now applies to all subsequent commands in this block
-        echo "Starting a fresh Minikube cluster..."
-        minikube start --memory=6656 --cpus=4 --driver=docker -p $MINIKUBE_PROFILE --wait=all
-        minikube update-context -p $MINIKUBE_PROFILE
-        cd ${TF_ROOT}
-        export TF_HTTP_USERNAME="gitlab-ci-token"
-        export TF_HTTP_PASSWORD="${CI_JOB_TOKEN}"
-        export GITLAB_TF_ADDRESS=${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/terraform/state/${TF_STATE_NAME}
-        rm -rf vault-helm bitnami-charts
-        git clone https://github.com/hashicorp/vault-helm.git --depth 1
-        git clone https://github.com/bitnami/charts.git --branch main bitnami-charts --depth 1
-        CHARTS_WITH_DEPS=("kafka" "postgresql" "redis")
-        for chart in "${CHARTS_WITH_DEPS[@]}"; do
-          echo "--> Building dependencies for $chart..."
-          helm dependency build ./bitnami-charts/bitnami/$chart
-        done
-        terraform init -reconfigure -upgrade \
-          -backend-config="address=${GITLAB_TF_ADDRESS}" \
-          -backend-config="lock_address=${GITLAB_TF_ADDRESS}/lock" \
-          -backend-config="unlock_address=${GITLAB_TF_ADDRESS}/lock" \
-          -backend-config="lock_method=POST" \
-          -backend-config="unlock_method=DELETE" \
-          -backend-config="retry_wait_min=5"
+      - *infra_template_before_script_commands
+
+.vault-connection-script-commands: &vault_connection_script_commands
+  - echo "Configuring Vault connection..."
+  - kubectl port-forward svc/vault 8200:8200 &
+  - sleep 5
+  - export VAULT_ADDR='http://127.0.0.1:8200'
+  - export VAULT_TOKEN='root'
 
 .vault-connection-template:
   before_script:
-    - echo "Configuring Vault connection..."
-    - kubectl port-forward svc/vault 8200:8200 &
-    - sleep 5
-    - export VAULT_ADDR='http://127.0.0.1:8200'
-    - export VAULT_TOKEN='root'
+    - *vault_connection_script_commands
 
 # --- JOB DEFINITIONS ---
 
@@ -72,24 +78,25 @@ validate:
   script:
     - terraform validate
 
-plan:
-  extends: 
-    - .infra-template
-    - .vault-connection-template
+plan-platform:
+  extends: .infra-template
   stage: plan
   script:
-    - terraform plan -out="plan.tfplan"
+    - terraform plan -out="platform.tfplan" -target=helm_release.vault -target=helm_release.postgres -target=helm_release.redis -target=helm_release.kafka
   artifacts:
     paths:
-      - "${TF_ROOT}/plan.tfplan"
+      - "${TF_ROOT}/platform.tfplan"
   rules:
     - if: $CI_COMMIT_BRANCH == "master"
 
-apply-vault:
+apply-platform:
   extends: .infra-template
-  stage: apply-vault
+  stage: apply-platform
   script:
-    - terraform apply -auto-approve -target=resource.helm_release.vault
+    - terraform apply -input=false "platform.tfplan"
+  needs:
+    - job: plan-platform
+      artifacts: true
   rules:
     - if: $CI_COMMIT_BRANCH == "master"
       when: manual
@@ -100,7 +107,7 @@ seed-vault:
     - .vault-connection-template
   stage: seed-vault
   needs: 
-     - job: apply-vault
+     - job: apply-platform
   script:
     - vault login $VAULT_TOKEN
     - echo "Seeding secrets into Vault..."
@@ -119,26 +126,40 @@ seed-vault:
     - if: $CI_COMMIT_BRANCH == "master"
       when: manual
 
-apply-all:
+plan-apps:
+  extends: 
+    - .infra-template
+    - .vault-connection-template
+  stage: plan-apps
+  needs:
+    - job: seed-vault
+  script:
+    - terraform plan -out="apps.tfplan"
+    - kill %1
+  artifacts:
+    paths:
+      - "${TF_ROOT}/apps.tfplan"
+  rules:
+    - if: $CI_COMMIT_BRANCH == "master"
+    
+apply-apps:
   extends: .infra-template
-  stage: apply-all
+  stage: apply-apps
+  needs:
+    - job: plan-apps
+      artifacts: true
+    - job: build-users-auth
+    - job: build-users-account
+    - job: seed-vault
   before_script:
+    - *infra_template_before_script_commands
     - echo "Loading application images into Minikube..."
     - echo "$CI_REGISTRY_PASSWORD" | docker login $CI_REGISTRY -u $CI_REGISTRY_USER --password-stdin
     - minikube image load $CI_REGISTRY/$CI_PROJECT_PATH/users-auth:$IMAGE_TAG
     - minikube image load $CI_REGISTRY/$CI_PROJECT_PATH/users-account:$IMAGE_TAG
-    - echo "Configuring Vault provider for Terraform..."
-    - kubectl port-forward svc/vault 8200:8200 &
-    - sleep 5
-    - export VAULT_ADDR='http://127.0.0.1:8200'
-    - export VAULT_TOKEN='root'
   script:
-    - terraform apply -input=false "plan.tfplan"
+    - terraform apply -input=false "apps.tfplan"
     - kill %1
-  needs:
-    - job: plan
-      artifacts: true
-    - job: seed-vault
   rules:
     - if: $CI_COMMIT_BRANCH == "master"
 

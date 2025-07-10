@@ -8,9 +8,10 @@ stages:
   - build
   - validate
   - plan
-  - apply-vault
+  - apply-platform
   - seed-vault
-  - apply-all
+  - plan-apps
+  - apply-apps
   - debug
 
 include: '.gitlab-ci-jobs.yml'
