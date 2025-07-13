@@ -10,14 +10,6 @@
     export TF_HTTP_USERNAME="gitlab-ci-token"
     export TF_HTTP_PASSWORD="${CI_JOB_TOKEN}"
     export GITLAB_TF_ADDRESS=${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/terraform/state/${TF_STATE_NAME}
-    rm -rf vault-helm bitnami-charts
-    git clone https://github.com/hashicorp/vault-helm.git --depth 1
-    git clone https://github.com/bitnami/charts.git --branch main bitnami-charts --depth 1
-    CHARTS_WITH_DEPS=("kafka" "postgresql" "redis")
-    for chart in "${CHARTS_WITH_DEPS[@]}"; do
-      echo "--> Building dependencies for $chart..."
-      helm dependency build ./bitnami-charts/bitnami/$chart
-    done
     terraform init -reconfigure -upgrade \
       -backend-config="address=${GITLAB_TF_ADDRESS}" \
       -backend-config="lock_address=${GITLAB_TF_ADDRESS}/lock" \

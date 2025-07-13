@@ -8,7 +8,9 @@ data "vault_generic_secret" "redis_credentials" {
 
 resource "helm_release" "postgres" {
   name = "postgres"
-  chart = "./bitnami-charts/bitnami/postgresql"
+  repository = "https://charts.bitnami.com/bitnami"
+  chart = "postgresql"
+  version = "13.2.27"
 
   set_sensitive = [
     {
@@ -53,7 +55,9 @@ resource "helm_release" "postgres" {
 
 resource "helm_release" "redis" {
   name       = "redis"
-  chart = "./bitnami-charts/bitnami/redis"
+  repository = "https://charts.bitnami.com/bitnami"
+  chart = "redis"
+  version = "18.6.0"
 
   set_sensitive = [
     {
@@ -65,6 +69,8 @@ resource "helm_release" "redis" {
 }
 
 resource "helm_release" "kafka" {
-    name = "kafka"
-    chart = "./bitnami-charts/bitnami/kafka"
+  name = "kafka"
+  repository = "https://charts.bitnami.com/bitnami"
+  version    = "26.3.1"
+  chart      = "kafka"
 }
