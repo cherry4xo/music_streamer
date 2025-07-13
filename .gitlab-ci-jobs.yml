@@ -139,9 +139,8 @@ plan-apps:
   needs:
     - job: seed-vault
   script:
-    - *infra_template_before_script_commands
-    - *vault_connection_script_commands
     - terraform plan -out="apps.tfplan"
+  after_script:
     - kill %1
   artifacts:
     paths:
