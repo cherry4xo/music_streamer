@@ -3,9 +3,6 @@
 .infra-template-before-script-commands: &infra_template_before_script_commands
   - | # All commands consolidated into one block for consistent execution and `set -e`
     set -e # This now applies to all subsequent commands in this block
-    echo "Starting a fresh Minikube cluster..."
-    minikube start --memory=6656 --cpus=4 --driver=docker -p $MINIKUBE_PROFILE --wait=all
-    minikube update-context -p $MINIKUBE_PROFILE
     cd ${TF_ROOT}
     export TF_HTTP_USERNAME="gitlab-ci-token"
     export TF_HTTP_PASSWORD="${CI_JOB_TOKEN}"
@@ -63,6 +60,18 @@ build-users-auth:
 build-users-account:
   extends: .build-template
   variables: { SERVICE_NAME: "users-account", SERVICE_PATH: "services/business/users-account" }
+
+setup-cluster:
+  stage: setup
+  image: registry.gitlab.com/gitlab-org/terraform-images/stable
+  tags: 
+    - firstvds
+  script:
+    - set -e
+    - minikube delete -p $MINIKUBE_PROFILE || true
+    - echo "Starting a fresh Minikube cluster..."
+    - minikube start --memory=6656 --cpus=4 --driver=docker -p $MINIKUBE_PROFILE --wait=all
+    - minikube update-context -p $MINIKUBE_PROFILE
 
 validate:
   extends: .infra-template
