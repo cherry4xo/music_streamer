@@ -138,6 +138,9 @@ plan-apps:
   stage: plan-apps
   needs:
     - job: seed-vault
+  before_script:
+    - *infra_template_before_script_commands
+    - *vault_connection_script_commands
   script:
     - terraform plan -out="apps.tfplan"
   after_script:
