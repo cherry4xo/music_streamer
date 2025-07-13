@@ -6,6 +6,7 @@ variables:
 
 stages:
   - build
+  - setup
   - validate
   - plan
   - apply-platform

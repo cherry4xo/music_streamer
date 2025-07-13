@@ -76,12 +76,16 @@ setup-cluster:
 validate:
   extends: .infra-template
   stage: validate
+  needs:
+    - setup-cluster
   script:
     - terraform validate
 
 plan-platform:
   extends: .infra-template
   stage: plan
+  needs:
+    - setup-cluster
   script:
     - terraform plan -out="platform.tfplan" -target=helm_release.vault -target=helm_release.postgres -target=helm_release.redis -target=helm_release.kafka
   artifacts:
