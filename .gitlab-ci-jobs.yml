@@ -135,6 +135,7 @@ plan-apps:
     - job: seed-vault
   script:
     - *infra_template_before_script_commands
+    - *vault_connection_script_commands
     - terraform plan -out="apps.tfplan"
     - kill %1
   artifacts:
@@ -154,6 +155,7 @@ apply-apps:
     - job: seed-vault
   before_script:
     - *infra_template_before_script_commands
+    - *vault_connection_script_commands
     - echo "Loading application images into Minikube..."
     - echo "$CI_REGISTRY_PASSWORD" | docker login $CI_REGISTRY -u $CI_REGISTRY_USER --password-stdin
     - minikube image load $CI_REGISTRY/$CI_PROJECT_PATH/users-auth:$IMAGE_TAG
