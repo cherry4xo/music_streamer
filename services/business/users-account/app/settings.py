@@ -10,7 +10,7 @@ def get_secret_from_vault(secret_path: str, key: str) -> str:
 
     client = hvac.Client(url=vault_addr)
     client.auth.kubernetes.login(
-        role="users-auth",
+        role="users-account",
         jwt=jwt
     )
 

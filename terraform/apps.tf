@@ -24,7 +24,7 @@ resource "kubernetes_deployment" "app_deployments" {
         labels = { app = each.key }
       }
       spec {
-        service_account_name = kubernetes_service_account.app_sa[each.key].metadata.0.name
+        service_account_name = kubernetes_service_account.app_sa[each.key].metadata[0].name
 
         image_pull_secrets {
           name = "gitlab-registry-secret"
