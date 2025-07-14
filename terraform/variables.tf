@@ -1,11 +1,19 @@
 variable "image_tag" {
-  type = string
+  description = "The tag for the docker images, usually the git commit SHA."
+  type        = string
+  default     = ""
 }
+
 variable "ci_registry" {
-  type = string
+  description = "The URL of the container registry."
+  type        = string
+  default     = ""
 }
+
 variable "ci_project_path" {
-  type = string
+  description = "The project path in the container registry."
+  type        = string
+  default     = ""
 }
 
 variable "services" {
