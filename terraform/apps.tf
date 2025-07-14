@@ -30,6 +30,8 @@ resource "kubernetes_deployment" "app_deployments" {
           name = each.key
           image = each.value.image
 
+          image_pull_policy = "IfNotPresent"
+
           port {
             container_port = each.value.container_port
           }

@@ -1,7 +1,7 @@
 # --- TEMPLATES ---
 
 .infra-template-before-script-commands: &infra_template_before_script_commands
-  - | # All commands consolidated into one block for consistent execution and `set -e`
+  - |
     set -e # This now applies to all subsequent commands in this block
     cd ${TF_ROOT}
     export TF_HTTP_USERNAME="gitlab-ci-token"
@@ -86,6 +86,7 @@ plan-platform:
   stage: plan
   needs:
     - setup-cluster
+    - validate
   script:
     - terraform plan -out="platform.tfplan" -target=helm_release.vault -target=helm_release.postgres -target=helm_release.redis -target=helm_release.kafka
   artifacts:
@@ -162,11 +163,6 @@ plan-apps:
     - job: seed-vault
   before_script:
     - *infra_template_before_script_commands
-    - echo "Configuring Vault connection..."
-    - kubectl port-forward svc/vault 8200:8200 &
-    - sleep 5
-    - export VAULT_ADDR='http://127.0.0.1:8200'
-    - export VAULT_TOKEN='root'
   script:
     - *vault_connection_script_commands
     - terraform plan -out="apps.tfplan"
