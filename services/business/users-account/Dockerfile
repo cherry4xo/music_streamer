@@ -15,3 +15,5 @@ WORKDIR /usr/src/users
 
 COPY ./app/ app/
 COPY ./main.py ./
+
+CMD python3 -u -m uvicorn main:app --host "${API_HOST}" --port "${API_PORT}"
