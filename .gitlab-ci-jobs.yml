@@ -165,7 +165,11 @@ plan-apps:
     - *infra_template_before_script_commands
   script:
     - *vault_connection_script_commands
-    - terraform plan -out="apps.tfplan"
+    - |
+      terraform plan -out="apps.tfplan" \
+        -var="image_tag=${CI_COMMIT_SHA}" \
+        -var="ci_registry=${CI_REGISTRY}" \
+        -var="ci_project_path=${CI_PROJECT_PATH}"
     - echo "Terminating kubectl port-forward..."
     - kill %1 || true
   artifacts:
@@ -187,11 +191,14 @@ apply-apps:
     - job: seed-vault
   before_script:
     - *infra_template_before_script_commands
-    - echo "Loading application images into Minikube..."
-    - echo "$CI_REGISTRY_PASSWORD" | docker login $CI_REGISTRY -u $CI_REGISTRY_USER --password-stdin
-    - echo "LOADING PATH - $CI_REGISTRY/$CI_PROJECT_PATH/users-auth:$IMAGE_TAG" 
-    - minikube image load $CI_REGISTRY/$CI_PROJECT_PATH/users-auth:$IMAGE_TAG
-    - minikube image load $CI_REGISTRY/$CI_PROJECT_PATH/users-account:$IMAGE_TAG
+    - echo "Creating Kubernetes secret for GitLab registry..."
+    - |
+      kubectl create secret docker-registry gitlab-registry-secret \
+        --docker-server="$CI_REGISTRY" \
+        --docker-username="$CI_REGISTRY_USER" \
+        --docker-password="$CI_REGISTRY_PASSWORD" \
+        --docker-email="1jlaketuk1@gmail.com" \
+        --dry-run=client -o yaml | kubectl apply -f -
   script:
     - *vault_connection_script_commands
     - terraform apply -input=false "apps.tfplan"

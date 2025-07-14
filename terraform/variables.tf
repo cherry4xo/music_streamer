@@ -1,3 +1,13 @@
+variable "image_tag" {
+  type = string
+}
+variable "ci_registry" {
+  type = string
+}
+variable "ci_project_path" {
+  type = string
+}
+
 variable "services" {
     description = "A map of service configurations to deploy"
     type = map(object({

@@ -26,11 +26,15 @@ resource "kubernetes_deployment" "app_deployments" {
       spec {
         service_account_name = kubernetes_service_account.app_sa[each.key].metadata.0.name
 
+        image_pull_secrets {
+          name = "gitlab-registry-secret"
+        }
+
         container {
           name = each.key
-          image = each.value.image
+          image = "${var.ci_registry}/${var.ci_project_path}/${each.key}:${var.image_tag}"
 
-          image_pull_policy = "IfNotPresent"
+          image_pull_policy = "Always"
 
           port {
             container_port = each.value.container_port
