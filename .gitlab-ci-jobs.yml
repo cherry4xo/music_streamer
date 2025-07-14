@@ -89,11 +89,7 @@ plan-platform:
     - validate
   script:
     - |
-      terraform plan -out="platform.tfplan"
-        -target=helm_release.vault \
-        -target=helm_release.postgres \
-        -target=helm_release.redis \
-        -target=helm_release.kafka
+      terraform plan -out="platform.tfplan" -target=helm_release.vault -target=helm_release.postgres -target=helm_release.redis -target=helm_release.kafka
   artifacts:
     paths:
       - "${TF_ROOT}/platform.tfplan"
