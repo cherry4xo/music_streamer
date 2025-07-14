@@ -190,6 +190,7 @@ apply-apps:
     - minikube image load $CI_REGISTRY/$CI_PROJECT_PATH/users-account:$IMAGE_TAG
   script:
     - terraform apply -input=false "apps.tfplan"
+  after_script:
     - kill %1
   rules:
     - if: $CI_COMMIT_BRANCH == "master"
