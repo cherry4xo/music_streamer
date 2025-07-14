@@ -37,7 +37,7 @@
     entrypoint: [""]
   tags:
     - firstvds
-  script:
+  before_script:
       - *infra_template_before_script_commands
 
 .vault-connection-script-commands: &vault_connection_script_commands
