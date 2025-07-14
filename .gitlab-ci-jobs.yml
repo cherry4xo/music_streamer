@@ -164,8 +164,9 @@ plan-apps:
     - *vault_connection_script_commands
   script:
     - terraform plan -out="apps.tfplan"
-  # after_script:
-  #   - kill %1
+  after_script:
+    - echo "Terminating kubectl port-forward..."
+    - kill %1 || true
   artifacts:
     paths:
       - "${TF_ROOT}/apps.tfplan"
@@ -190,8 +191,9 @@ apply-apps:
     - minikube image load $CI_REGISTRY/$CI_PROJECT_PATH/users-account:$IMAGE_TAG
   script:
     - terraform apply -input=false "apps.tfplan"
-  # after_script:
-  #   - kill %1
+  after_script:
+    - echo "Terminating kubectl port-forward..."
+    - kill %1 || true
   rules:
     - if: $CI_COMMIT_BRANCH == "master"
 
