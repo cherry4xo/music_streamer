@@ -115,9 +115,9 @@ seed-vault:
      - job: apply-platform
   script:
     - vault login $VAULT_TOKEN
-    - echo "Seeding secrets into Vault..."
+    - echo "Seeding secrets for Postgres..."
     - |
-      vault kv put secret/platform/postgres \
+      vault kv put secret/data/platform/postgres \
         admin_password="$GITLAB_VAR_POSTGRES_ADMIN_PASS" \
         auth_db_name="users_auth_db" \
         auth_db_user="auth_user" \
@@ -125,11 +125,32 @@ seed-vault:
         account_db_name="users_account_db" \
         account_db_user="account_user" \
         account_db_pass="$GITLAB_VAR_ACCOUNT_DB_PASS"
-    - vault kv put secret/platform/redis password="$GITLAB_VAR_REDIS_PASS"
+    - echo "Seeding secrets for Redis..."
+    - vault kv put secret/data/platform/redis password="$GITLAB_VAR_REDIS_PASS"
+    - echo "Writing secrets for users-auth..."
+    - |
+      vault kv put secret/data/users-auth db_url="$USERS_AUTH_POSTGRES_URL" \
+                                     secret_key="$USERS_AUTH_SECRET_KEY" \
+                                     client_id="$USERS_AUTH_CLIENT_ID" \
+                                     redis_url="$USERS_AUTH_REDIS_URL" \
+                                     access_token_expire_minutes="$ACCESS_TOKEN_EXPIRE_MINUTES" \
+                                     refresh_token_expire_minutes="$REFRESH_TOKEN_EXPIRE_MINUTES"
+    - echo "Writing secrets for users-account..."
+    - |
+      vault kv put secret/data/users-account db_url="USERS_ACCOUNT_PORTGRES_URL" \
+                                        secret_key="$USERS_ACCOUNT_SECRET_KEY" \
+                                        client_id="$USERS_ACCOUNT_CLIENT_ID" \
+                                        redis_url="$USERS_ACCOUNT_REDIS_URL" \
+                                        email="$USERS_ACCOUNT_EMAIL" \
+                                        smtp_host="$USERS_ACCOUNT_SMTP_HOST" \
+                                        smtp_port="$USERS_ACCOUNT_SMTP_PORT" \
+                                        smtp_login="$USERS_ACCOUNT_SMTP_LOGIN" \
+                                        smtp_password="$USERS_ACCOUNT_SMTP_PASSWORD" \
+                                        email_confirmation_letter_expire_seconds="$USERS_ACCOUNT_EMAIL_COMFIRMATION_LETTER_EXPIRE_MINUTES"
+
     - kill %1
   rules:
     - if: $CI_COMMIT_BRANCH == "master"
-      when: manual
 
 plan-apps:
   extends: 
