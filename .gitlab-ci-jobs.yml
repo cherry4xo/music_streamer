@@ -148,7 +148,6 @@ seed-vault:
                                         smtp_password="$USERS_ACCOUNT_SMTP_PASSWORD" \
                                         email_confirmation_letter_expire_seconds="$USERS_ACCOUNT_EMAIL_COMFIRMATION_LETTER_EXPIRE_MINUTES"
 
-    - kill %1
   rules:
     - if: $CI_COMMIT_BRANCH == "master"
 
@@ -164,8 +163,6 @@ plan-apps:
     - *vault_connection_script_commands
   script:
     - terraform plan -out="apps.tfplan"
-  after_script:
-    - kill %1
   artifacts:
     paths:
       - "${TF_ROOT}/apps.tfplan"
@@ -190,8 +187,6 @@ apply-apps:
     - minikube image load $CI_REGISTRY/$CI_PROJECT_PATH/users-account:$IMAGE_TAG
   script:
     - terraform apply -input=false "apps.tfplan"
-  after_script:
-    - kill %1
   rules:
     - if: $CI_COMMIT_BRANCH == "master"
 
