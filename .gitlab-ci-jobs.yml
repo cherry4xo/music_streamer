@@ -114,8 +114,8 @@ seed-vault:
   needs: 
      - job: apply-platform
   script:
-    - vault login $VAULT_TOKEN
     - *vault_connection_script_commands
+    - vault login $VAULT_TOKEN
     - echo "Seeding secrets for Postgres..."
     - |
       vault kv put secret/data/platform/postgres \
