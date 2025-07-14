@@ -66,3 +66,19 @@ resource "vault_kubernetes_auth_backend_role" "users_account_role" {
     token_policies = [vault_policy.users_account_policy.name]
     token_ttl = 3600
 }
+
+resource "kubernetes_cluster_role_binding" "vault_auth_delegator" {
+  metadata {
+    name = "vault-auth-delegator"
+  }
+  role_ref {
+    api_group = "rbac.authorization.k8s.io"
+    kind      = "ClusterRole"
+    name      = "system:auth-delegator"
+  }
+  subject {
+    kind      = "ServiceAccount"
+    name      = kubernetes_service_account.vault_auth_sa.metadata[0].name
+    namespace = "default"
+  }
+}
