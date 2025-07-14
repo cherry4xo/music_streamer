@@ -189,7 +189,7 @@ apply-apps:
     - *infra_template_before_script_commands
     - echo "Loading application images into Minikube..."
     - echo "$CI_REGISTRY_PASSWORD" | docker login $CI_REGISTRY -u $CI_REGISTRY_USER --password-stdin
-    - echo "IMAGE TAG - $IMAGE_TAG" 
+    - echo "LOADING PATH - $CI_REGISTRY/$CI_PROJECT_PATH/users-auth:$IMAGE_TAG" 
     - minikube image load $CI_REGISTRY/$CI_PROJECT_PATH/users-auth:$IMAGE_TAG
     - minikube image load $CI_REGISTRY/$CI_PROJECT_PATH/users-account:$IMAGE_TAG
   script:
