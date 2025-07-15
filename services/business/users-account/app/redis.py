@@ -14,7 +14,7 @@ from app import settings
 
 logger = logging.getLogger(__name__)
 
-connection_url = f"redis://{settings.REDIS_HOST}:{settings.REDIS_PORT}?decode_responses=True"
+connection_url = f"redis://{settings.REDIS_URL}:{settings.REDIS_URL}?decode_responses=True"
 r = from_url(connection_url)
 
 async def ping_redis_connection(r: Redis):

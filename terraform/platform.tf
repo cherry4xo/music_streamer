@@ -6,8 +6,29 @@ data "vault_generic_secret" "redis_credentials" {
   path = "secret/platform/redis"
 }
 
-resource "helm_release" "postgres" {
-  name = "postgres"
+locals {
+  postgres_instances = {
+    "auth" = {
+      release_name = "postgres-auth"
+      db_name      = var.auth_db_name
+      db_user      = var.auth_db_user
+      db_pass      = var.auth_db_pass
+    },
+    "account" = {
+      release_name = "postgres-account"
+      db_name      = var.account_db_name
+      db_user      = var.account_db_user
+      db_pass      = var.account_db_pass
+    }
+  }
+}
+
+# ... rest of the file ...
+
+resource "helm_release" "postgres_instances" {
+  for_each = local.postgres_instances
+
+  name = each.value.release_name
   repository = "https://charts.bitnami.com/bitnami"
   chart = "postgresql"
   version = "13.2.27"
@@ -19,33 +40,18 @@ resource "helm_release" "postgres" {
       type = "string"
     },
     {
-      name  = "auth.databases[0]"
-      value = var.auth_db_name
+      name  = "auth.database"
+      value = each.value.db_name
       type = "string"
     },
     {
-      name  = "auth.usernames[0]"
-      value = var.auth_db_user
+      name  = "auth.username"
+      value = each.value.db_user
       type = "string"
     },
     {
-      name  = "auth.passwords[0]"
-      value = var.auth_db_pass
-      type = "string"
-    },
-    {
-      name  = "auth.databases[1]"
-      value = var.account_db_name
-      type = "string"
-    },
-    {
-      name  = "auth.usernames[1]"
-      value = var.account_db_user
-      type = "string"
-    },
-    {
-      name  = "auth.passwords[1]"
-      value = var.account_db_pass
+      name  = "auth.password"
+      value = each.value.db_pass
       type = "string"
     }
   ]
