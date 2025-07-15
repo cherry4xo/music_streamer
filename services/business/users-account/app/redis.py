@@ -14,8 +14,7 @@ from app import settings
 
 logger = logging.getLogger(__name__)
 
-connection_url = f"redis://{settings.REDIS_URL}:{settings.REDIS_URL}?decode_responses=True"
-r = from_url(connection_url)
+r = from_url(settings.REDIS_URL)
 
 async def ping_redis_connection(r: Redis):
     try:
@@ -24,11 +23,11 @@ async def ping_redis_connection(r: Redis):
     except ConnectionError:
         raise HTTPException(
             status_code=500,
-            detail=f"Redis error: failed to connect to redis database with url {connection_url}"
+            detail=f"Redis error: failed to connect to redis database with url {settings.REDIS_URL}"
         )
     
 
-async def redis_transaction_with_retry(func):
+def redis_transaction_with_retry(func):
     @wraps(func)
     async def wrapper(cls, *args, **kwargs):
         retry_count = 0
@@ -106,6 +105,7 @@ class RedisInterface:
             pipe.expire(name=name, time=expire)
 
     @classmethod
+    @redis_transaction_with_retry
     async def modify_record(cls, pipe: Pipeline, type: str, id: str, data: Dict[str, Union[str, dict, int]], expire: int=None) -> None:
         name = f"{type}:{id}"
 

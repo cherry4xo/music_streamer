@@ -140,7 +140,7 @@ seed-vault:
                                      refresh_token_expire_minutes="$REFRESH_TOKEN_EXPIRE_MINUTES"
     - echo "Writing secrets for users-account..."
     - |
-      vault kv put secret/users-account db_url="USERS_ACCOUNT_PORTGRES_URL" \
+      vault kv put secret/users-account db_url="$USERS_ACCOUNT_PORTGRES_URL" \
                                         secret_key="$USERS_ACCOUNT_SECRET_KEY" \
                                         client_id="$USERS_ACCOUNT_CLIENT_ID" \
                                         redis_url="$USERS_ACCOUNT_REDIS_URL" \
