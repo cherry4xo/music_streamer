@@ -1,9 +1,9 @@
 data "vault_generic_secret" "postgres_credentials" {
-  path = "secret/data/platform/postgres"
+  path = "secret/platform/postgres"
 }
 
 data "vault_generic_secret" "redis_credentials" {
-  path = "secret/data/platform/redis"
+  path = "secret/platform/redis"
 }
 
 resource "helm_release" "postgres" {
