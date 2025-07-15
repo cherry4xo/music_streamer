@@ -120,7 +120,7 @@ seed-vault:
     - vault login $VAULT_TOKEN
     - echo "Seeding secrets for Postgres..."
     - |
-      vault kv put secret/data/platform/postgres \
+      vault kv put secret/platform/postgres \
         admin_password="$GITLAB_VAR_POSTGRES_ADMIN_PASS" \
         auth_db_name="users_auth_db" \
         auth_db_user="auth_user" \
@@ -129,10 +129,10 @@ seed-vault:
         account_db_user="account_user" \
         account_db_pass="$GITLAB_VAR_ACCOUNT_DB_PASS"
     - echo "Seeding secrets for Redis..."
-    - vault kv put secret/data/platform/redis password="$GITLAB_VAR_REDIS_PASS"
+    - vault kv put secret/platform/redis password="$GITLAB_VAR_REDIS_PASS"
     - echo "Writing secrets for users-auth..."
     - |
-      vault kv put secret/data/users-auth db_url="$USERS_AUTH_POSTGRES_URL" \
+      vault kv put secret/users-auth db_url="$USERS_AUTH_POSTGRES_URL" \
                                      secret_key="$USERS_AUTH_SECRET_KEY" \
                                      client_id="$USERS_AUTH_CLIENT_ID" \
                                      redis_url="$USERS_AUTH_REDIS_URL" \
@@ -140,7 +140,7 @@ seed-vault:
                                      refresh_token_expire_minutes="$REFRESH_TOKEN_EXPIRE_MINUTES"
     - echo "Writing secrets for users-account..."
     - |
-      vault kv put secret/data/users-account db_url="USERS_ACCOUNT_PORTGRES_URL" \
+      vault kv put secret/users-account db_url="USERS_ACCOUNT_PORTGRES_URL" \
                                         secret_key="$USERS_ACCOUNT_SECRET_KEY" \
                                         client_id="$USERS_ACCOUNT_CLIENT_ID" \
                                         redis_url="$USERS_ACCOUNT_REDIS_URL" \
