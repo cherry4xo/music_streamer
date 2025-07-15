@@ -3,7 +3,7 @@ from datetime import timedelta
 from fastapi import Depends, HTTPException, Security, status
 from fastapi.security import OAuth2PasswordRequestForm
 
-from app.schemas import JWTAccessToken, JWTRefreshToken, JWTToken, CredantialsSchema, RefreshToken
+from app.schemas import JWTAccessToken, JWTRefreshToken, JWTToken, CredentialsSchema, RefreshToken
 from app.models import User
 from app.utils.contrib import authenticate, validate_refresh_token, reusable_oauth2, refresh_oauth2, get_current_user
 from app.utils.jwt import create_access_token, create_refresh_token
@@ -14,7 +14,7 @@ from app import metrics
 
 @log_calls
 async def get_access_token(credentials: OAuth2PasswordRequestForm = Depends()):
-    credentials = CredantialsSchema(email=credentials.username, password=credentials.password)
+    credentials = CredentialsSchema(email=credentials.username, password=credentials.password)
     user = await authenticate(credentials=credentials)
 
     if not user:
@@ -37,7 +37,7 @@ async def get_access_token(credentials: OAuth2PasswordRequestForm = Depends()):
 
 @log_calls
 async def get_refresh_token(credentials: OAuth2PasswordRequestForm = Depends()):
-    credentials = CredantialsSchema(email=credentials.username, password=credentials.password)
+    credentials = CredentialsSchema(email=credentials.username, password=credentials.password)
     user = await authenticate(credentials=credentials)
 
     if not user:
