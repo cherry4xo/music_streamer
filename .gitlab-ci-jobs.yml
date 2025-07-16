@@ -71,6 +71,7 @@ setup-cluster:
     - minikube delete -p $MINIKUBE_PROFILE || true
     - echo "Starting a fresh Minikube cluster..."
     - minikube start --memory=6656 --cpus=4 --driver=docker -p $MINIKUBE_PROFILE --wait=all
+    - minikube addons enable ingress
     - minikube update-context -p $MINIKUBE_PROFILE
 
 validate:
