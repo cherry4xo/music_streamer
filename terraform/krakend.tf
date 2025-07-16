@@ -60,7 +60,7 @@ resource "kubernetes_service" "krakend" {
   }
   spec {
     selector = {
-      app = kubernetes_deployment.krakend.spec[0].metadata[0].labels.app
+      app = kubernetes_deployment.krakend.spec[0].template[0].metadata[0].labels.app
     }
     port {
       protocol = "TCP"
