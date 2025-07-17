@@ -34,7 +34,7 @@ resource "kubernetes_deployment" "app_deployments" {
           name = each.key
           image = "${var.ci_registry}/${var.ci_project_path}/${each.key}:${var.image_tag}"
 
-          image_pull_policy = "Always"
+          image_pull_policy = "Never"
 
           port {
             container_port = each.value.container_port
