@@ -34,4 +34,4 @@ async def lifespan_wrapper(app):
 
 app.router.lifespan_context = lifespan_wrapper
 init_middlewares(app)
-app.include_router(login_router, prefix="/", tags=["auth"])
+app.include_router(login_router, tags=["login"])
