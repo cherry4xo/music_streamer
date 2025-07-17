@@ -1,0 +1,79 @@
+# docker-compose.yml
+
+version: '3.9'
+
+services:
+  # --- Authentication Service ---
+  postgres-auth:
+    image: postgres:15-alpine
+    container_name: postgres-auth-local
+    environment:
+      - POSTGRES_USER=auth_user
+      - POSTGRES_PASSWORD=yoursecurepassword
+      - POSTGRES_DB=users_auth_db
+    ports:
+      - "5431:5432" # Maps to localhost:5431 to avoid conflicts
+    volumes:
+      - postgres-auth-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U auth_user -d users_auth_db"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  users-auth:
+    container_name: users-auth-local
+    build:
+      context: . # Build from the project root
+      dockerfile: ./services/business/users-auth/Dockerfile # Path to the specific Dockerfile
+      args:
+        # Pass the service path as a build argument
+        SERVICE_PATH: services/business/users-auth
+    volumes:
+      # Mount local code into the container for live changes
+      - ./services/business/users-auth:/usr/src/users
+    environment:
+      # This URL points to the postgres service defined above
+      - DATABASE_URL=postgres://auth_user:yoursecurepassword@postgres-auth:5432/users_auth_db
+    command: tail -f /dev/null # Keeps the container running but idle
+    depends_on:
+      postgres-auth:
+        condition: service_healthy
+
+  # --- Account Service ---
+  postgres-account:
+    image: postgres:15-alpine
+    container_name: postgres-account-local
+    environment:
+      - POSTGRES_USER=account_user
+      - POSTGRES_PASSWORD=yoursecurepassword
+      - POSTGRES_DB=users_account_db
+    ports:
+      - "5432:5432" # Maps to localhost:5432
+    volumes:
+      - postgres-account-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U account_user -d users_account_db"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  users-account:
+    container_name: users-account-local
+    build:
+      context: .
+      dockerfile: ./services/business/users-account/Dockerfile
+      args:
+        SERVICE_PATH: services/business/users-account
+    volumes:
+      - ./services/business/users-account:/usr/src/users
+    environment:
+      - DATABASE_URL=postgres://account_user:yoursecurepassword@postgres-account:5432/users_account_db
+    command: tail -f /dev/null # Keeps the container running but idle
+    depends_on:
+      postgres-account:
+        condition: service_healthy
+
+volumes:
+  postgres-auth-data:
+  postgres-account-data:

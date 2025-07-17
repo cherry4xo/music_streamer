@@ -18,9 +18,6 @@
 .build-template:
   stage: build
   image: docker:latest
-  needs:
-    - job: generate-migrations
-      artifacts: true
   services:
     - docker:dind
   before_script:
@@ -38,7 +35,6 @@
     - if: $CI_COMMIT_BRANCH == "master"
       when: on_success
 
-# minikube delete -p $MINIKUBE_PROFILE || true
 .infra-template:
   image:
     name: registry.gitlab.com/gitlab-org/terraform-images/stable
@@ -164,63 +160,13 @@ seed-vault:
   rules:
     - if: $CI_COMMIT_BRANCH == "master"
 
-generate-migrations:
-  extends: 
-    - .infra-template
-  stage: seed-vault
-  needs:
-    - job: apply-platform
-      artifacts: false
-  script:
-    - *vault_connection_script_commands
-    - echo "Waiting for PostgreSQL to be ready..."
-    - kubectl port-forward svc/postgres-auth-postgresql 8001:5432 &
-    - sleep 5
-    - export DATABASE_URL="postgres://auth_user:$GITLAB_VAR_AUTH_DB_PASS@127.0.0.1:8001/users_auth_db"
-
-    - echo "Installing application dependencies..."
-    - cd ${CI_PROJECT_DIR}/services/business/users-auth
-    - pip install -r requirements.txt
-
-    - echo "Generating and applying migrations for users-auth..."
-    - |
-      if [ ! -f "aerich.ini" ]; then
-        aerich init -t app.db.TORTOISE_ORM --location ./migrations
-      fi
-    - aerich migrate
-    - aerich upgrade
-
-    - kill %1
-    - cd ${CI_PROJECT_DIR}/services/business/users-account
-    - kubectl port-forward svc/postgres-account-postgresql 8002:5432 &
-    - sleep 5
-    - export DATABASE_URL="postgres://account_user:$GITLAB_VAR_ACCOUNT_DB_PASS@127.0.0.1:8002/users_account_db"
-    - pip install -r requirements.txt
-    - |
-      if [ ! -f "aerich.ini" ]; then
-        aerich init -t app.db.TORTOISE_ORM --location ./migrations
-      fi
-    - aerich migrate
-    - aerich upgrade
-    - kill %1
-  artifacts:
-    paths:
-      - services/business/users-auth/migrations/
-      - services/business/users-account/migrations/
-      - services/business/users-auth/aerich.ini
-      - services/business/users-account/aerich.ini
-    expire_in: 1 hour 
-  rules:
-    - if: $CI_COMMIT_BRANCH == "master"
-
 plan-apps:
   extends: 
     - .infra-template
     - .vault-connection-template
   stage: plan-apps
   needs:
-    - job: build-users-account
-    - job: build-users-auth
+    - job: seed-vault
   before_script:
     - *infra_template_before_script_commands
   script:
@@ -237,7 +183,7 @@ plan-apps:
       - "${TF_ROOT}/apps.tfplan"
   rules:
     - if: $CI_COMMIT_BRANCH == "master"
-
+    
 apply-apps:
   extends: 
     - .infra-template
@@ -249,7 +195,6 @@ apply-apps:
     - job: build-users-auth
     - job: build-users-account
     - job: seed-vault
-    - job: generate-migrations
   before_script:
     - *infra_template_before_script_commands
     - echo "Creating Kubernetes secret for GitLab registry..."
