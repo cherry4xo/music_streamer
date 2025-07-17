@@ -179,7 +179,7 @@ generate-migrations:
     - export DATABASE_URL="postgres://auth_user:$GITLAB_VAR_AUTH_DB_PASS@127.0.0.1:8001/users_auth_db"
 
     - echo "Installing application dependencies..."
-    - cd services/business/users-auth
+    - cd ${CI_PROJECT_DIR}/services/business/users-auth
     - pip install -r requirements.txt
 
     - echo "Generating and applying migrations for users-auth..."
@@ -191,7 +191,7 @@ generate-migrations:
     - aerich upgrade
 
     - kill %1
-    - cd ../users-account
+    - cd ${CI_PROJECT_DIR}/services/business/users-account
     - kubectl port-forward svc/postgres-account-postgresql 8002:5432 &
     - sleep 5
     - export DATABASE_URL="postgres://account_user:$GITLAB_VAR_ACCOUNT_DB_PASS@127.0.0.1:8002/users_account_db"
@@ -219,7 +219,8 @@ plan-apps:
     - .vault-connection-template
   stage: plan-apps
   needs:
-    - job: seed-vault
+    - job: build-users-account
+    - job: build-users-auth
   before_script:
     - *infra_template_before_script_commands
   script:
