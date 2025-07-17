@@ -66,6 +66,7 @@ resource "kubernetes_service" "krakend" {
       protocol = "TCP"
       port = 8080
       target_port = 8080
+      node_port = 30080
     }
     type = "NodePort"
   }
