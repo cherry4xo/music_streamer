@@ -11,7 +11,7 @@
             "propadate_claims_to": ["user_id"]
         }
     },
-    "endpoins": [
+    "endpoints": [
         {
             "endpoint": "/v1/auth/login",
             "method": "POST",
@@ -49,7 +49,7 @@
             ]
         },
         {
-            "endpoint": "v1/auth/refresh",
+            "endpoint": "/v1/auth/refresh",
             "method": "POST",
             "backend": [
                 {
@@ -73,7 +73,7 @@
             ]
         },
         {
-            "endpoint": "v1/account/me/username",
+            "endpoint": "/v1/account/me/username",
             "method": "POST",
             "backend": [
                 {

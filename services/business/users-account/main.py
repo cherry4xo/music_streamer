@@ -20,7 +20,7 @@ def init_middlewares(app: FastAPI):
     app.add_middleware(LoggingMiddleware)
 
 
-setup_logging("auth-service")
+setup_logging("account-service")
 app = FastAPI(root_path=settings.ROOT_PATH)
 instrumentator = Instrumentator().instrument(app=app)
 
