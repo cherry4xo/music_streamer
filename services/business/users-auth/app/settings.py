@@ -47,4 +47,4 @@ REFRESH_URL = "/login/refresh-token"
 
 MODE = os.getenv("MODE", default="development")
 
-ROOT_PATH = os.getenv("ROOT_PATH", default="/auth")
+ROOT_PATH = os.getenv("ROOT_PATH", default="/")

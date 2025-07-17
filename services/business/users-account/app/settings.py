@@ -42,7 +42,7 @@ CLIENT_ID = get_secret_from_vault("users-account", "client_id")
 
 MODE = os.getenv("MODE", default="development")
 
-ROOT_PATH = os.getenv("ROOT_PATH", default="/account")
+ROOT_PATH = os.getenv("ROOT_PATH", default="/")
 
 EMAIL = get_secret_from_vault("users-account", "email")
 SMTP_HOST = get_secret_from_vault("users-account", "smtp_host")
