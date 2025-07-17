@@ -22,32 +22,32 @@ def get_secret_from_vault(secret_path: str, key: str) -> str:
 
     return response["data"]["data"][key]
 
-# DB_URL = get_secret_from_vault("users-account", "db_url")
-DB_URL = os.getenv("DATABASE_URL")
+DB_URL = get_secret_from_vault("users-account", "db_url")
+# DB_URL = os.getenv("DATABASE_URL")
 DB_CONNECTIONS = {
     "default": DB_URL,
 }
 
-# REDIS_URL = get_secret_from_vault("users-account", "redis_url")
-# # KAFKA_URL = get_secret_from_vault("users-account", "kafka_url")
-# # KAFKA_PRODUCE_TOPICS = get_secret_from_vault("users-account", "kafka_produce_topics")
-# # KAFKA_CONSUME_TOPICS = get_secret_from_vault("users-account", "kafka_consume_topics")
+REDIS_URL = get_secret_from_vault("users-account", "redis_url")
+# KAFKA_URL = get_secret_from_vault("users-account", "kafka_url")
+# KAFKA_PRODUCE_TOPICS = get_secret_from_vault("users-account", "kafka_produce_topics")
+# KAFKA_CONSUME_TOPICS = get_secret_from_vault("users-account", "kafka_consume_topics")
 
-# CORS_ORIGINS = ["*"]
-# CORS_ALLOW_CREDENTIALS = True
-# CORS_ALLOW_METHODS = ["*"]
-# CORS_ALLOW_HEADERS = ["*"]
+CORS_ORIGINS = ["*"]
+CORS_ALLOW_CREDENTIALS = True
+CORS_ALLOW_METHODS = ["*"]
+CORS_ALLOW_HEADERS = ["*"]
 
-# SECRET_KEY = get_secret_from_vault("users-account", "secret_key")
-# CLIENT_ID = get_secret_from_vault("users-account", "client_id")
+SECRET_KEY = get_secret_from_vault("users-account", "secret_key")
+CLIENT_ID = get_secret_from_vault("users-account", "client_id")
 
-# MODE = os.getenv("MODE", default="development")
+MODE = os.getenv("MODE", default="development")
 
-# ROOT_PATH = os.getenv("ROOT_PATH", default="/")
+ROOT_PATH = os.getenv("ROOT_PATH", default="/")
 
-# EMAIL = get_secret_from_vault("users-account", "email")
-# SMTP_HOST = get_secret_from_vault("users-account", "smtp_host")
-# SMTP_PORT = get_secret_from_vault("users-account", "smtp_port")
-# SMTP_LOGIN = get_secret_from_vault("users-account", "smtp_login")
-# SMTP_PASSWORD = get_secret_from_vault("users-account", "smtp_password")
-# EMAIL_CONFIRMATION_LETTER_EXPIRE_SECONDS = get_secret_from_vault("users-account", "email_confirmation_letter_expire_seconds")
+EMAIL = get_secret_from_vault("users-account", "email")
+SMTP_HOST = get_secret_from_vault("users-account", "smtp_host")
+SMTP_PORT = get_secret_from_vault("users-account", "smtp_port")
+SMTP_LOGIN = get_secret_from_vault("users-account", "smtp_login")
+SMTP_PASSWORD = get_secret_from_vault("users-account", "smtp_password")
+EMAIL_CONFIRMATION_LETTER_EXPIRE_SECONDS = get_secret_from_vault("users-account", "email_confirmation_letter_expire_seconds")

@@ -22,30 +22,30 @@ def get_secret_from_vault(secret_path: str, key: str) -> str:
 
     return response["data"]["data"][key]
 
-# DB_URL = get_secret_from_vault("users-auth", "db_url")
-DB_URL = os.getenv("DATABASE_URL")
+DB_URL = get_secret_from_vault("users-auth", "db_url")
+# DB_URL = os.getenv("DATABASE_URL")
 DB_CONNECTIONS = {
     "default": DB_URL,
 }
-# REDIS_URL = get_secret_from_vault("users-auth", "redis_url")
-# # KAFKA_URL = get_secret_from_vault("users-auth", "kafka_url")
-# # KAFKA_PRODUCE_TOPICS = get_secret_from_vault("users-auth", "kafka_produce_topics")
-# # KAFKA_CONSUME_TOPICS = get_secret_from_vault("users-auth", "kafka_consume_topics")
+REDIS_URL = get_secret_from_vault("users-auth", "redis_url")
+# KAFKA_URL = get_secret_from_vault("users-auth", "kafka_url")
+# KAFKA_PRODUCE_TOPICS = get_secret_from_vault("users-auth", "kafka_produce_topics")
+# KAFKA_CONSUME_TOPICS = get_secret_from_vault("users-auth", "kafka_consume_topics")
 
-# CORS_ORIGINS = ["*"]
-# CORS_ALLOW_CREDENTIALS = True
-# CORS_ALLOW_METHODS = ["*"]
-# CORS_ALLOW_HEADERS = ["*"]
+CORS_ORIGINS = ["*"]
+CORS_ALLOW_CREDENTIALS = True
+CORS_ALLOW_METHODS = ["*"]
+CORS_ALLOW_HEADERS = ["*"]
 
-# SECRET_KEY = get_secret_from_vault("users-auth", "secret_key")
-# CLIENT_ID = get_secret_from_vault("users-auth", "client_id")
+SECRET_KEY = get_secret_from_vault("users-auth", "secret_key")
+CLIENT_ID = get_secret_from_vault("users-auth", "client_id")
 
-# ACCESS_TOKEN_EXPIRE_MINUTES = get_secret_from_vault("users-auth", "access_token_expire_minutes")
-# REFRESH_TOKEN_EXPIRE_MINUTES = get_secret_from_vault("users-auth", "refresh_token_expire_minutes")
+ACCESS_TOKEN_EXPIRE_MINUTES = get_secret_from_vault("users-auth", "access_token_expire_minutes")
+REFRESH_TOKEN_EXPIRE_MINUTES = get_secret_from_vault("users-auth", "refresh_token_expire_minutes")
 
-# LOGIN_URL = "/login/access-token"
-# REFRESH_URL = "/login/refresh-token"
+LOGIN_URL = "/login/access-token"
+REFRESH_URL = "/login/refresh-token"
 
-# MODE = os.getenv("MODE", default="development")
+MODE = os.getenv("MODE", default="development")
 
-# ROOT_PATH = os.getenv("ROOT_PATH", default="/")
+ROOT_PATH = os.getenv("ROOT_PATH", default="/")
