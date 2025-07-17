@@ -5,12 +5,12 @@ variables:
   IMAGE_TAG: $CI_COMMIT_SHA
 
 stages:
+  - build
   - setup
   - validate
   - plan
   - apply-platform
   - seed-vault
-  - build
   - plan-apps
   - apply-apps
   - debug

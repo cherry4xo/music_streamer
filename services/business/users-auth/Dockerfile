@@ -17,6 +17,6 @@ WORKDIR /usr/src/users
 
 COPY ${SERVICE_PATH}/app/ app/
 COPY ${SERVICE_PATH}/main.py ./
-# COPY ./migrations/ ./migrations/
+COPY ./migrations/ ./migrations/
 
 CMD python3 -u -m uvicorn main:app --host "${API_HOST}" --port "${API_PORT}"
