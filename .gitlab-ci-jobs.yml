@@ -161,6 +161,48 @@ seed-vault:
   rules:
     - if: $CI_COMMIT_BRANCH == "master"
 
+generate-migrations:
+  extends: 
+    - .infra-template
+  stage: seed-vault
+  needs:
+    - job: apply-platform
+      artifacts: false
+  script:
+    - *vault_connection_script_commands
+    - echo "Waiting for PostgreSQL to be ready..."
+    - kubectl port-forward svc/postgres-auth-postgresql 8001:5432 &
+    - sleep 5
+    - export DATABASE_URL="postgres://auth_user:$GITLAB_VAR_AUTH_DB_PASS@127.0.0.1:8001/users_auth_db"
+
+    - echo "Installing application dependencies..."
+    - cd services/business/users-auth
+    - pip install -r requirements.txt
+
+    - echo "Generating and applying migrations for users-auth..."
+    - |
+      if [ ! -f "aerich.ini" ]; then
+        aerich init -t app.db.TORTOISE_ORM --location ./migrations
+      fi
+    - aerich migrate
+    - aerich upgrade
+
+    - kill %1
+    - cd ../users-account
+    - kubectl port-forward svc/postgres-account-postgresql 8002:5432 &
+    - sleep 5
+    - export DATABASE_URL="postgres://account_user:$GITLAB_VAR_ACCOUNT_DB_PASS@127.0.0.1:8002/users_account_db"
+    - pip install -r requirements.txt
+    - |
+      if [ ! -f "aerich.ini" ]; then
+        aerich init -t app.db.TORTOISE_ORM --location ./migrations
+      fi
+    - aerich migrate
+    - aerich upgrade
+    - kill %1
+  rules:
+    - if: $CI_COMMIT_BRANCH == "master"
+
 plan-apps:
   extends: 
     - .infra-template
@@ -184,7 +226,7 @@ plan-apps:
       - "${TF_ROOT}/apps.tfplan"
   rules:
     - if: $CI_COMMIT_BRANCH == "master"
-    
+
 apply-apps:
   extends: 
     - .infra-template
@@ -196,6 +238,7 @@ apply-apps:
     - job: build-users-auth
     - job: build-users-account
     - job: seed-vault
+    - job: generate-migrations
   before_script:
     - *infra_template_before_script_commands
     - echo "Creating Kubernetes secret for GitLab registry..."
