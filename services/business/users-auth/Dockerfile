@@ -1,6 +1,6 @@
 FROM python:3.13-slim-bullseye
 
-ENV PYTHONUNBUFFERED=1
+ENV PYTHONUNBUFFERED 1
 ENV PYTHONPATH=/home/code/ PYTHONHASHSEED=0
 ENV API_HOST=0.0.0.0
 ENV API_PORT=8080
@@ -15,5 +15,6 @@ WORKDIR /usr/src/users
 
 COPY ./app/ app/
 COPY ./main.py ./
+COPY ./migrations/ ./migrations/
 
 CMD python3 -u -m uvicorn main:app --host "${API_HOST}" --port "${API_PORT}"
