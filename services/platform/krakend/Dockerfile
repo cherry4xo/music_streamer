@@ -2,8 +2,8 @@ FROM krakend:2.10 as builder
 
 # Аргумент для выбора окружения (dev, prod и т.д.). По умолчанию 'development'.
 # Название должно совпадать с именем файла в config/settings (например, development.json)
-ARG ENV=local
-ARG SERVICE_PATH=/services/platform/krakend
+ARG ENV=dev
+ARG SERVICE_PATH=services/platform/krakend
 
 # Устанавливаем рабочую директорию
 WORKDIR /etc/krakend

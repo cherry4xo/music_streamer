@@ -15,6 +15,27 @@
       -backend-config="unlock_method=DELETE" \
       -backend-config="retry_wait_min=5"
 
+.krakend-build-template:
+  stage: build
+  image: docker:latest
+  services:
+    - docker:dind
+  before_script:
+    - echo "$CI_REGISTRY_PASSWORD" | docker login $CI_REGISTRY -u $CI_REGISTRY_USER --password-stdin
+  script:
+    - |
+      docker build \
+        --build-arg SERVICE_PATH=${SERVICE_PATH} \
+        --build-arg ENV=${ENV} \
+        --progress=plain \
+        -f ${SERVICE_PATH}/Dockerfile \
+        -t ${CI_REGISTRY}/${CI_PROJECT_PATH}/${SERVICE_NAME}:${IMAGE_TAG} \
+        .
+    - docker push ${CI_REGISTRY}/${CI_PROJECT_PATH}/${SERVICE_NAME}:${IMAGE_TAG}
+  rules:
+    - if: $CI_COMMIT_BRANCH == "master"
+      when: on_success
+
 .build-template:
   stage: build
   image: docker:latest
@@ -66,8 +87,8 @@ build-users-account:
   variables: { SERVICE_NAME: "users-account", SERVICE_PATH: "services/business/users-account" }
 
 build-krakend:
-  extends: .build-template
-  variables: { SERVICE_NAME: "krakend", SERVICE_PATH: "services/platform/krakend" }
+  extends: .krakend-build-template
+  variables: { SERVICE_NAME: "krakend", SERVICE_PATH: "services/platform/krakend", ENV: "dev" }
 
 setup-cluster:
   stage: setup

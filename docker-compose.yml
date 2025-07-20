@@ -87,6 +87,7 @@ services:
       context: ./services/platform/krakend
       args:
         - ENV=local
+        - SERVICE_PATH=.
     container_name: krakend
     ports:
       - "8088:8080" # Expose Krakend on host port 8088
