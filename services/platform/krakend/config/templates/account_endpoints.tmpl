@@ -1,0 +1,60 @@
+{
+    "endpoint": "/v1/account/me",
+    "method": "GET",
+    "extra_config": {
+        "auth/validator": {
+            "roles": [
+                "user"
+            ]
+        }
+    },
+    "backend": [
+        {
+            "host": [
+                "{{ .settings.account_service_url }}"
+            ],
+            "url_pattern": "/me"
+        }
+    ]
+},
+{
+    "endpoint": "/v1/account/me/username",
+    "method": "POST",
+    "extra_config": {
+        "auth/validator": {
+            "roles": [
+                "user"
+            ]
+        }
+    },
+    "backend": [
+        {
+            "host": [
+                "{{ .settings.account_service_url }}"
+            ],
+            "url_pattern": "/me/username"
+        }
+    ]
+},
+{
+  "endpoint": "/v1/account/docs",
+  "method": "GET",
+  "output_encoding": "no-op",
+  "backend": [
+    {
+      "host": ["{{ .settings.account_service_url }}"],
+      "url_pattern": "/docs"
+    }
+  ]
+},
+{
+  "endpoint": "/v1/account/openapi.json",
+  "method": "GET",
+  "output_encoding": "no-op",
+  "backend": [
+    {
+      "host": ["{{ .settings.account_service_url }}"],
+      "url_pattern": "/openapi.json"
+    }
+  ]
+}

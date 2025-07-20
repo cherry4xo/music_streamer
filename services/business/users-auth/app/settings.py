@@ -1,5 +1,9 @@
 import os
 import hvac
+import load_dotenv
+load_dotenv.load_dotenv()
+
+MODE = os.getenv("MODE", "PROD")
 
 def get_secret_from_vault(secret_path: str, key: str) -> str:
     vault_addr = os.getenv("VAULT_ADDR", "http://vault:8200")
@@ -22,30 +26,35 @@ def get_secret_from_vault(secret_path: str, key: str) -> str:
 
     return response["data"]["data"][key]
 
-DB_URL = get_secret_from_vault("users-auth", "db_url")
-# DB_URL = os.getenv("DATABASE_URL")
+if MODE == "DEBUG":
+    DB_URL = os.getenv("AUTH_DB_URL")
+    REDIS_URL = os.getenv("REDIS_URL")
+    KAFKA_URL = os.getenv("KAFKA_URL")
+    KAFKA_PRODUCE_TOPICS = os.getenv("AUTH_KAFKA_PRODUCE_TOPICS")
+    KAFKA_CONSUME_TOPICS = os.getenv("AUTH_KAFKA_CONSUME_TOPICS")
+    SECRET_KEY = os.getenv("AUTH_SECRET_KEY")
+    CLIENT_ID = os.getenv("AUTH_CLIENT_ID")
+    ACCESS_TOKEN_EXPIRE_MINUTES = os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES")
+    REFRESH_TOKEN_EXPIRE_MINUTES = os.getenv("REFRESH_TOKEN_EXPIRE_MINUTES")
+    ROOT_PATH = os.getenv("AUTH_ROOT_PATH", "/")
+else:
+    DB_URL = get_secret_from_vault("users-auth", "db_url")
+    REDIS_URL = get_secret_from_vault("users-auth", "redis_url")
+    KAFKA_URL = get_secret_from_vault("users-auth", "kafka_url")
+    KAFKA_PRODUCE_TOPICS = get_secret_from_vault("users-auth", "kafka_produce_topics")
+    KAFKA_CONSUME_TOPICS = get_secret_from_vault("users-auth", "kafka_consume_topics")
+    SECRET_KEY = get_secret_from_vault("users-auth", "secret_key")
+    CLIENT_ID = get_secret_from_vault("users-auth", "client_id")
+    ACCESS_TOKEN_EXPIRE_MINUTES = get_secret_from_vault("users-auth", "access_token_expire_minutes")
+    REFRESH_TOKEN_EXPIRE_MINUTES = get_secret_from_vault("users-auth", "refresh_token_expire_minutes")
+    ROOT_PATH = get_secret_from_vault("users-auth", "root_path")
+
 DB_CONNECTIONS = {
     "default": DB_URL,
 }
-REDIS_URL = get_secret_from_vault("users-auth", "redis_url")
-# KAFKA_URL = get_secret_from_vault("users-auth", "kafka_url")
-# KAFKA_PRODUCE_TOPICS = get_secret_from_vault("users-auth", "kafka_produce_topics")
-# KAFKA_CONSUME_TOPICS = get_secret_from_vault("users-auth", "kafka_consume_topics")
-
 CORS_ORIGINS = ["*"]
 CORS_ALLOW_CREDENTIALS = True
 CORS_ALLOW_METHODS = ["*"]
 CORS_ALLOW_HEADERS = ["*"]
-
-SECRET_KEY = get_secret_from_vault("users-auth", "secret_key")
-CLIENT_ID = get_secret_from_vault("users-auth", "client_id")
-
-ACCESS_TOKEN_EXPIRE_MINUTES = get_secret_from_vault("users-auth", "access_token_expire_minutes")
-REFRESH_TOKEN_EXPIRE_MINUTES = get_secret_from_vault("users-auth", "refresh_token_expire_minutes")
-
 LOGIN_URL = "/login/access-token"
 REFRESH_URL = "/login/refresh-token"
-
-MODE = os.getenv("MODE", default="development")
-
-ROOT_PATH = os.getenv("ROOT_PATH", default="/")

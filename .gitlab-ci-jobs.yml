@@ -65,6 +65,10 @@ build-users-account:
   extends: .build-template
   variables: { SERVICE_NAME: "users-account", SERVICE_PATH: "services/business/users-account" }
 
+build-krakend:
+  extends: .build-template
+  variables: { SERVICE_NAME: "krakend", SERVICE_PATH: "services/business/krakend" }
+
 setup-cluster:
   stage: setup
   image: registry.gitlab.com/gitlab-org/terraform-images/stable
@@ -142,7 +146,8 @@ seed-vault:
                                      client_id="$USERS_AUTH_CLIENT_ID" \
                                      redis_url="$USERS_AUTH_REDIS_URL" \
                                      access_token_expire_minutes="$ACCESS_TOKEN_EXPIRE_MINUTES" \
-                                     refresh_token_expire_minutes="$REFRESH_TOKEN_EXPIRE_MINUTES"
+                                     refresh_token_expire_minutes="$REFRESH_TOKEN_EXPIRE_MINUTES" \
+                                     root_path="$USERS_AUTH_ROOT_PATH"
     - echo "Writing secrets for users-account..."
     - |
       vault kv put secret/users-account db_url="$USERS_ACCOUNT_PORTGRES_URL" \
@@ -154,7 +159,8 @@ seed-vault:
                                         smtp_port="$USERS_ACCOUNT_SMTP_PORT" \
                                         smtp_login="$USERS_ACCOUNT_SMTP_LOGIN" \
                                         smtp_password="$USERS_ACCOUNT_SMTP_PASSWORD" \
-                                        email_confirmation_letter_expire_seconds="$USERS_ACCOUNT_EMAIL_COMFIRMATION_LETTER_EXPIRE_MINUTES"
+                                        email_confirmation_letter_expire_seconds="$USERS_ACCOUNT_EMAIL_COMFIRMATION_LETTER_EXPIRE_MINUTES" \
+                                        root_path="$USERS_ACCOUNT_ROOT_PATH"
 
     - kill %1
   rules:

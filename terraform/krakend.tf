@@ -3,7 +3,10 @@ resource "kubernetes_config_map" "krakend_config" {
     name = "krakend-config"
   }
   data = {
-    "krakend.json" = file("${path.module}/../services/platform/krakend/config/partials/dev/settings.json")
+    "krakend.tmpl" = file("${path.module}/../services/platform/krakend/krakend.tmpl")
+    "config--partials--dev--settings.json" = file("${path.module}/../services/platform/krakend/config/partials/dev/settings.json")
+    "endpoints---auth.json" = file("${path.module}/../services/platform/krakend/endpoints/auth.json")
+    "endpoints---account.json" = file("${path.module}/../services/platform/krakend/endpoints/account.json")
   }
 }
 
@@ -29,17 +32,42 @@ resource "kubernetes_deployment" "krakend" {
       spec {
         container {
           name = "krakend"
-          image = "devopsfaith/krakend:2.6"
+          image = "${var.ci_registry}/${var.ci_project_path}/kranend:${var.image_tag}"
 
-          command = ["krakend", "run", "-c", "/etc/krakend/krakend.json"]
-
+          command = ["krakend", "run", "-d", "-c", "/etc/krakend/krakend.tmpl"]
+          
           port {
             container_port = 8080
           }
 
           volume_mount {
             name = "krakend-config-volume"
-            mount_path = "/etc/krakend"
+            mount_path = "/etc/krakend/krakend.tmpl"
+            sub_path = "krakend.tmpl"
+          }
+          volume_mount {
+            name = "krakend-config-volume"
+            mount_path = "/etc/krakend/config/partials/dev/settings.json"
+            sub_path = "config--partials--dev--settings.json"
+          }
+          volume_mount {
+            name       = "krakend-config-volume"
+            mount_path = "/etc/krakend/endpoints/auth.json"
+            sub_path   = "endpoints---auth.json"
+          }
+          volume_mount {
+            name       = "krakend-config-volume"
+            mount_path = "/etc/krakend/endpoints/account.json"
+            sub_path   = "endpoints---account.json"
+          }
+
+          env {
+            name = "FC_SETTINGS"
+            value = "/etc/krakend/config/partials/dev"
+          }
+          env {
+            name = "FC_ENABLE"
+            value = 1
           }
         }
 

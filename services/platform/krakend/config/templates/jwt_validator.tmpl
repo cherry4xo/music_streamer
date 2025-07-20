@@ -1,0 +1,7 @@
+{
+    "alg": "RS256",
+    "jwk_url": "{{ .settings.auth_service_url }}/.well-known/jwks.json",
+    "roles_key": "scope",
+    "propagate_claims": true,
+    "propagate_claims_to": ["user_id"]
+}

@@ -1,0 +1,62 @@
+{
+  "endpoint": "/v1/auth/login",
+  "method": "POST",
+  "backend": [
+    {
+      "host": ["{{ .settings.auth_service_url }}"],
+      "url_pattern": "/login"
+    }
+  ]
+},
+{
+  "endpoint": "/v1/auth/access-token",
+  "method": "POST",
+  "backend": [
+    {
+      "host": ["{{ .settings.auth_service_url }}"],
+      "url_pattern": "/access-token"
+    }
+  ]
+},
+{
+  "endpoint": "/v1/auth/refresh-token",
+  "method": "POST",
+  "backend": [
+    {
+      "host": ["{{ .settings.auth_service_url }}"],
+      "url_pattern": "/refresh-token"
+    }
+  ]
+},
+{
+  "endpoint": "/v1/auth/refresh",
+  "method": "POST",
+  "backend": [
+    {
+      "host": ["{{ .settings.auth_service_url }}"],
+      "url_pattern": "/refresh"
+    }
+  ]
+},
+{
+  "endpoint": "/v1/auth/docs",
+  "method": "GET",
+  "output_encoding": "no-op",
+  "backend": [
+    {
+      "host": ["{{ .settings.auth_service_url }}"],
+      "url_pattern": "/docs"
+    }
+  ]
+},
+{
+  "endpoint": "/v1/auth/openapi.json",
+  "method": "GET",
+  "output_encoding": "no-op",
+  "backend": [
+    {
+      "host": ["{{ .settings.auth_service_url }}"],
+      "url_pattern": "/openapi.json"
+    }
+  ]
+}

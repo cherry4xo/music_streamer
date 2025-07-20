@@ -1,27 +1,33 @@
-FROM krakend:2.9 as builder
-ARG ENV=prod
+FROM krakend:2.10 as builder
 
+# Аргумент для выбора окружения (dev, prod и т.д.). По умолчанию 'development'.
+# Название должно совпадать с именем файла в config/settings (например, development.json)
+ARG ENV=local
+
+# Устанавливаем рабочую директорию
+WORKDIR /etc/krakend
+
+# Копируем шаблоны и настройки
 COPY krakend.tmpl .
-COPY config .
+COPY config/settings ./settings/
+COPY config/templates ./templates/
 
-# Save temporary file to /tmp to avoid permission errors
+# Запускаем проверку и генерацию krakend.json
+# KrakenD использует ENV для выбора нужного блока настроек в шаблоне
+
 RUN FC_ENABLE=1 \
     FC_OUT=/tmp/krakend.json \
-    FC_PARTIALS="/etc/krakend/partials" \
-    FC_SETTINGS="/etc/krakend/settings/$ENV" \
-    FC_TEMPLATES="/etc/krakend/templates" \
-    krakend check -d -t -c krakend.tmpl --lint
+    FC_SETTINGS=/etc/krakend/settings/${ENV} \
+    FC_TEMPLATES=/etc/krakend/templates \
+    krakend check -d -t -c krakend.tmpl
 
-FROM krakend:2.9
-# Keep operating system updated with security fixes between releases
+RUN krakend check -c /tmp/krakend.json || (cat /tmp/krakend.json && exit 1)
+
+# Этап 2: Финальный образ
+FROM krakend:2.10
+
+# Обновляем пакеты для безопасности
 RUN apk upgrade --no-cache --no-interactive
 
-COPY --from=builder --chown=krakend:nogroup /tmp/krakend.json .
-# Uncomment with Enterprise image:
-# COPY LICENSE /etc/krakend/LICENSE
-
-# Uncomment if you have certificates issued by a custom CA
-# e.g., tls: failed to verify certificate: x509: certificate signed by unknown authority
-#
-# COPY yourca.pem /usr/local/share/ca-certificates/
-# RUN update-ca-certificates
+# Копируем скомпилированную конфигурацию из этапа сборки
+COPY --from=builder --chown=krakend:nogroup /tmp/krakend.json /etc/krakend/krakend.json

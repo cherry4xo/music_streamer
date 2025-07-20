@@ -1,94 +1,20 @@
 {
-  "$schema": "https://www.krakend.io/schema/v3.json",
   "version": 3,
   "port": {{ .settings.port }},
-  "host": ["http://krakend:{{ .settings.port }}"],
-  "timeout": "3000ms",
-  "cache_ttl": "300s",
+  "output_encoding": "json",
 
-  // Include global middleware configurations from partials
   "extra_config": {
-    {{ include "partials/jwt_validator.tmpl" . }},
-    {{ include "partials/cors.tmpl" . }}
+    "telemetry/logging": {
+      "level": "DEBUG",
+      "prefix": "[KRAKEND]",
+      "stdout": true
+    },
+    "security/cors": {{ template "cors.tmpl" . }},
+    "auth/validator": {{ template "jwt_validator.tmpl" . }}
   },
 
-  // Define API Endpoints
   "endpoints": [
-    // --- Health Check (Example) ---
-    {
-      "endpoint": "/__health",
-      "method": "GET",
-      "backend": [
-        {
-          "url_pattern": "/__health",
-          "host": ["{{ .settings.hosts.users_auth }}"]
-        }
-      ]
-    },
-
-    // --- Users Auth Service Endpoints ---
-    {
-      // Login Endpoint
-      "endpoint": "/auth/login",
-      "method": "POST",
-      "backend": [
-        {
-          "url_pattern": "/access-token",
-          "method": "POST",
-          "host": ["{{ .settings.hosts.users_auth }}"]
-        }
-      ]
-    },
-    {
-      // Refresh Token Endpoint
-      "endpoint": "/auth/refresh",
-      "method": "POST",
-      "backend": [
-        {
-          "url_pattern": "/refresh",
-          "method": "POST",
-          "host": ["{{ .settings.hosts.users_auth }}"]
-        }
-      ]
-    },
-    // Add other public auth endpoints if needed
-
-    // --- Users Account Service Endpoints (Protected) ---
-    {
-      "endpoint": "/users/me",
-      "method": "GET",
-      "backend": [
-        {
-          "url_pattern": "/users/me",
-          "method": "GET",
-          "host": ["{{ .settings.hosts.users_account }}"] // Target users-account service
-        }
-      ],
-      "extra_config": {
-        // Reference the globally defined validator
-        "auth/validator": {
-          // Optionally add role restrictions if needed in the future
-          // "roles": ["user"],
-          "propagate_claims_to_backends": true // Ensure claim propagation is enabled for this endpoint
-        }
-      }
-    },
-    {
-      "endpoint": "/users/me",
-      "method": "PUT", // Or PATCH
-      "backend": [
-        {
-          "url_pattern": "/users/me",
-          "method": "PUT", // Or PATCH
-          "host": ["{{ .settings.hosts.users_account }}"]
-        }
-      ],
-      "extra_config": {
-        "auth/validator": {
-          "propagate_claims_to_backends": true
-        }
-      }
-    }
-    // Add other protected user-account endpoints
+    {{ template "auth_endpoints.tmpl" . }},
+    {{ template "account_endpoints.tmpl" . }}
   ]
 }

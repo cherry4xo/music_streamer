@@ -15,3 +15,4 @@ uvicorn
 prometheus-fastapi-instrumentator>=6.1.0
 prometheus-client
 hvac
+load_dotenv

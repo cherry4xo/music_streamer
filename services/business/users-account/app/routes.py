@@ -37,3 +37,6 @@ async def change_username(
     user_id: UUID4 = Depends(get_user_id_from_gateway),
 ):
     return await services.change_username(user_id=user_id, username=username)
+
+
+# @router.post("/me/confirm_email", response_model=)
