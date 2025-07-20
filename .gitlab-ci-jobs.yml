@@ -145,6 +145,9 @@ seed-vault:
                                      secret_key="$USERS_AUTH_SECRET_KEY" \
                                      client_id="$USERS_AUTH_CLIENT_ID" \
                                      redis_url="$USERS_AUTH_REDIS_URL" \
+                                     kafka_url="$USERS_AUTH_KAFKA_URL" \
+                                     kafka_produce_topics="$USERS_AUTH_KAFKA_PRODUCE_TOPICS" \
+                                     kafka_consume_topics="$USERS_AUTH_KAFKA_CONSUME_TOPICS" \
                                      access_token_expire_minutes="$ACCESS_TOKEN_EXPIRE_MINUTES" \
                                      refresh_token_expire_minutes="$REFRESH_TOKEN_EXPIRE_MINUTES" \
                                      root_path="$USERS_AUTH_ROOT_PATH"
@@ -154,6 +157,9 @@ seed-vault:
                                         secret_key="$USERS_ACCOUNT_SECRET_KEY" \
                                         client_id="$USERS_ACCOUNT_CLIENT_ID" \
                                         redis_url="$USERS_ACCOUNT_REDIS_URL" \
+                                        kafka_url="$USERS_ACCOUNT_KAFKA_URL" \
+                                        kafka_produce_topics="$USERS_ACCOUNT_KAFKA_PRODUCE_TOPICS" \
+                                        kafka_consume_topics="$USERS_ACCOUNT_KAFKA_CONSUME_TOPICS" \
                                         email="$USERS_ACCOUNT_EMAIL" \
                                         smtp_host="$USERS_ACCOUNT_SMTP_HOST" \
                                         smtp_port="$USERS_ACCOUNT_SMTP_PORT" \

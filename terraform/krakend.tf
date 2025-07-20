@@ -20,7 +20,9 @@ resource "kubernetes_deployment" "krakend" {
       spec {
         container {
           name = "krakend"
-          image = "${var.ci_registry}/${var.ci_project_path}/kranend:${var.image_tag}"
+          image = "${var.ci_registry}/${var.ci_project_path}/krakend:${var.image_tag}"
+
+          image_pull_policy = "Always"
 
           command = ["krakend", "run", "-d", "-c", "/etc/krakend/krakend.tmpl"]
           
