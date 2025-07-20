@@ -72,9 +72,9 @@ class User(BaseModel):
     email = fields.CharField(max_length=255, unique=True)
     recovery_email = fields.CharField(max_length=255, null=True)
 
-    first_name = fields.CharField(max_length=100)
+    first_name = fields.CharField(max_length=100, null=True)
     second_name = fields.CharField(max_length=100, null=True)
-    display_name = fields.CharField(max_length=100)
+    display_name = fields.CharField(max_length=100, null=True)
     status = fields.CharEnumField(UserStatus, default=UserStatus.PENDING, index=True)
 
     is_email_verified = fields.BooleanField(default=False)

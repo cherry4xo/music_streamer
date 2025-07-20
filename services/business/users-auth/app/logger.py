@@ -16,7 +16,8 @@ def setup_logging(service_name: str):
         os.makedirs(log_dir, exist_ok=True)
 
     if settings.MODE == "DEBUG":
-        log_level = logging.DEBUG
+        # log_level = logging.DEBUG
+        log_level = logging.INFO
     else:
         log_level = logging.INFO
     logger = logging.getLogger()

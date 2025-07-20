@@ -80,6 +80,13 @@ services:
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
       KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
       KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
+    
+    healthcheck:
+      # This command tries to list topics. It will only succeed if the broker is fully up.
+      test: ["CMD", "kafka-topics", "--bootstrap-server", "kafka:9092", "--list"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
   krakend:
     # Use the official image
@@ -107,6 +114,7 @@ services:
     volumes:
       # Optional: Mount local code for live reloading during development
       - ./services/business/users-auth:/usr/src/users
+      - ./keys:/usr/src/users/keys
     ports:
       - "8001:8080"
     networks:
@@ -116,6 +124,8 @@ services:
         condition: service_healthy # Wait for Postgres to be ready
       redis:
         condition: service_healthy # Wait for Redis to be ready
+      kafka:
+        condition: service_healthy
 
   users-account:
     build: ./services/business/users-account
@@ -131,6 +141,8 @@ services:
       postgres-account:
         condition: service_healthy
       redis:
+        condition: service_healthy
+      kafka:
         condition: service_healthy
 
 networks:

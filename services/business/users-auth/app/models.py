@@ -2,7 +2,8 @@ from typing import Optional
 from tortoise import Model, fields
 from tortoise.exceptions import DoesNotExist
 from pydantic import UUID4
-
+from app.schemas import CreateUser
+from app.utils import password
 
 class BaseModel(Model):
     uuid = fields.UUIDField(pk=True)
@@ -22,6 +23,7 @@ class User(BaseModel):
     username = fields.CharField(max_length=255, unique=True)
     email = fields.CharField(max_length=255, unique=True)
     password_hash = fields.CharField(max_length=255, null=True)
+    roles = fields.TextField(default="user")
     
     @classmethod
     async def get_by_uuid(cls, uuid: UUID4) -> Optional["User"]:
@@ -40,6 +42,23 @@ class User(BaseModel):
             return model
         except DoesNotExist:
             return None
+        
+    @classmethod
+    async def get_by_email(cls, email: str) -> Optional["User"]:
+        try:
+            query = cls.get_or_none(email=email)
+            model = await query
+            return model
+        except DoesNotExist:
+            return None
+        
+    @classmethod
+    async def create(cls, user: CreateUser) -> "User":
+        user_dict = user.model_dump(exclude=["password"])
+        password_hash = password.get_password_hash(password=user.password)
+        model = cls(**user_dict, password_hash=password_hash)
+        await model.save()
+        return model
         
     def __str__(self) -> str:
         return self.username

@@ -2,7 +2,7 @@ from pydantic import BaseModel, UUID4
 
 
 class CredentialsSchema(BaseModel):
-    username: str | None
+    email: str | None
     password: str
 
     class Config: 
@@ -32,6 +32,18 @@ class JWTTokenPayload(BaseModel):
 
 class RefreshToken(BaseModel):
     refresh_token: str
+
+
+class CreateUser(BaseModel):
+    username: str
+    email: str
+    password: str
+
+
+class UserCreated(BaseModel):
+    uuid: UUID4
+    username: str
+    email: str
 
 
 class Msg(BaseModel):

@@ -59,4 +59,15 @@
       "url_pattern": "/openapi.json"
     }
   ]
+},
+{
+  "endpoint": "/v1/auth/create-user",
+  "method": "POST",
+  "output_encoding": "no-op",
+  "backend": [
+    {
+      "host": ["{{ .settings.auth_service_url }}"],
+      "url_pattern": "/create-user"
+    }
+  ]
 }

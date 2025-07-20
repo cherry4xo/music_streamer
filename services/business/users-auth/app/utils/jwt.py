@@ -5,7 +5,7 @@ from fastapi.encoders import jsonable_encoder
 
 from app import settings
 
-ALGORITHM = "HS256"
+ALGORITHM = "RS256"
 access_token_jwt_subject = "access"
 refresh_token_jwt_subject = "refresh"
 
@@ -25,8 +25,12 @@ def create_access_token(*, data: dict, expires_delta: timedelta = None):
         "iss": JWT_ISSUER,
         "aud": JWT_AUDIENCE
     })
-    encoded_jwt = jwt.encode(jsonable_encoder(to_encode), settings.SECRET_KEY, algorithm=ALGORITHM)
-    
+    encoded_jwt = jwt.encode(
+        payload=to_encode, 
+        key=settings.JWT_PRIVATE_KEY,
+        algorithm=ALGORITHM,
+        headers={"kid": settings.KEY_ID}
+    )
     return encoded_jwt
 
 
@@ -42,6 +46,11 @@ def create_refresh_token(*, data: dict, expires_delta: timedelta = None):
         "iss": JWT_ISSUER,
         "aud": JWT_AUDIENCE
     })
-    encoded_jwt = jwt.encode(jsonable_encoder(to_encode), settings.SECRET_KEY, algorithm=ALGORITHM)
+    encoded_jwt = jwt.encode(
+        payload=to_encode, 
+        key=settings.JWT_PRIVATE_KEY,
+        algorithm=ALGORITHM,
+        headers={"kid": settings.KEY_ID}
+    )
 
     return encoded_jwt

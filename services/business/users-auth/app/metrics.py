@@ -27,3 +27,9 @@ auth_refresh_token_logins_total = Counter(
     "Total number of logins requesting only refresh token",
     ["status"] # Метки: "success", "failure"
 )
+
+auth_user_registrations_total = Counter(
+    "auth_user_registrations_total",
+    "Total number of user registrations",
+    ["status"] # Метки: "success", "failure"
+)

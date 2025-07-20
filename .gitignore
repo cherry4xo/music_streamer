@@ -179,3 +179,4 @@ services/platform/hashicorp/pass_secrets.sh
 .terraform/
 environments/
 local.env
+keys/

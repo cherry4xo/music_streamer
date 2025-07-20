@@ -1,3 +1,4 @@
+aiokafka
 aerich
 fastapi
 tortoise-orm

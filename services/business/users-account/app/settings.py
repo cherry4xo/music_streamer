@@ -1,6 +1,7 @@
 import os
 import hvac
 import load_dotenv
+from enum import Enum
 load_dotenv.load_dotenv()
 
 MODE = os.getenv("MODE", "PROD")
@@ -28,10 +29,11 @@ def get_secret_from_vault(secret_path: str, key: str) -> str:
 
 if MODE == "DEBUG":
     DB_URL = os.getenv("ACCOUNT_DB_URL")
+    # DB_URL = "postgres://account_user:account_password_local@0.0.0.0:5434/users_account_db"
     REDIS_URL = os.getenv("REDIS_URL")
     KAFKA_URL = os.getenv("KAFKA_URL")
-    KAFKA_PRODUCE_TOPICS = os.getenv("ACCOUNT_KAFKA_PRODUCE_TOPICS")
-    KAFKA_CONSUME_TOPICS = os.getenv("ACCOUNT_KAFKA_CONSUME_TOPICS")
+    KAFKA_PRODUCE_TOPICS = os.getenv("ACCOUNT_KAFKA_PRODUCE_TOPICS").split(",")
+    KAFKA_CONSUME_TOPICS = os.getenv("ACCOUNT_KAFKA_CONSUME_TOPICS").split(",")
     SECRET_KEY = os.getenv("ACCOUNT_SECRET_KEY")
     CLIENT_ID = os.getenv("ACCOUNT_CLIENT_ID")
     EMAIL = os.getenv("EMAIL")
@@ -45,8 +47,8 @@ else:
     DB_URL = get_secret_from_vault("users-account", "db_url")
     REDIS_URL = get_secret_from_vault("users-account", "redis_url")
     KAFKA_URL = get_secret_from_vault("users-account", "kafka_url")
-    KAFKA_PRODUCE_TOPICS = get_secret_from_vault("users-account", "kafka_produce_topics")
-    KAFKA_CONSUME_TOPICS = get_secret_from_vault("users-account", "kafka_consume_topics")
+    KAFKA_PRODUCE_TOPICS = get_secret_from_vault("users-account", "kafka_produce_topics").split(",")
+    KAFKA_CONSUME_TOPICS = get_secret_from_vault("users-account", "kafka_consume_topics").split(",")
     SECRET_KEY = get_secret_from_vault("users-account", "secret_key")
     CLIENT_ID = get_secret_from_vault("users-account", "client_id")
     EMAIL = get_secret_from_vault("users-account", "email")
@@ -64,3 +66,8 @@ CORS_ORIGINS = ["*"]
 CORS_ALLOW_CREDENTIALS = True
 CORS_ALLOW_METHODS = ["*"]
 CORS_ALLOW_HEADERS = ["*"]
+
+class EventTypes(Enum):
+    USER_CREATED = "user_created"
+    USER_UPDATED = "user_updated"
+    USER_DELETED = "user_deleted"

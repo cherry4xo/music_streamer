@@ -171,7 +171,9 @@ seed-vault:
                                      kafka_consume_topics="$USERS_AUTH_KAFKA_CONSUME_TOPICS" \
                                      access_token_expire_minutes="$ACCESS_TOKEN_EXPIRE_MINUTES" \
                                      refresh_token_expire_minutes="$REFRESH_TOKEN_EXPIRE_MINUTES" \
-                                     root_path="$USERS_AUTH_ROOT_PATH"
+                                     root_path="$USERS_AUTH_ROOT_PATH" \
+                                     jwt_private_key="$(cat $GITLAB_VAR_JWT_PRIVATE_KEY)" \
+                                     jwks_json="$GITLAB_VAR_JWKS_JSON"
     - echo "Writing secrets for users-account..."
     - |
       vault kv put secret/users-account db_url="$USERS_ACCOUNT_PORTGRES_URL" \
