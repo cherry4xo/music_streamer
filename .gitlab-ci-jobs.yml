@@ -67,7 +67,7 @@ build-users-account:
 
 build-krakend:
   extends: .build-template
-  variables: { SERVICE_NAME: "krakend", SERVICE_PATH: "services/business/krakend" }
+  variables: { SERVICE_NAME: "krakend", SERVICE_PATH: "services/platform/krakend" }
 
 setup-cluster:
   stage: setup
