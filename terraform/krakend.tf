@@ -3,10 +3,10 @@ resource "kubernetes_config_map" "krakend_config" {
     name = "krakend-config"
   }
   data = {
-    "krakend.tmpl" = file("${path.module}/../services/platform/krakend/krakend.tmpl")
-    "config--partials--dev--settings.json" = file("${path.module}/../services/platform/krakend/config/partials/dev/settings.json")
-    "endpoints---auth.json" = file("${path.module}/../services/platform/krakend/endpoints/auth.json")
-    "endpoints---account.json" = file("${path.module}/../services/platform/krakend/endpoints/account.json")
+    "krakend.tmpl" = file("../services/platform/krakend/krakend.tmpl")
+    "config--partials--dev--settings.json" = file("../services/platform/krakend/config/partials/dev/settings.json")
+    "endpoints---auth.json" = file("/..services/platform/krakend/endpoints/auth.json")
+    "endpoints---account.json" = file("../services/platform/krakend/endpoints/account.json")
   }
 }
 
