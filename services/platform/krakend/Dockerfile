@@ -3,14 +3,15 @@ FROM krakend:2.10 as builder
 # Аргумент для выбора окружения (dev, prod и т.д.). По умолчанию 'development'.
 # Название должно совпадать с именем файла в config/settings (например, development.json)
 ARG ENV=local
+ARG SERVICE_PATH=/services/platform/krakend
 
 # Устанавливаем рабочую директорию
 WORKDIR /etc/krakend
 
 # Копируем шаблоны и настройки
-COPY krakend.tmpl .
-COPY config/settings ./settings/
-COPY config/templates ./templates/
+COPY ${SERVICE_PATH}/krakend.tmpl .
+COPY ${SERVICE_PATH}/config/settings ./settings/
+COPY ${SERVICE_PATH}/config/templates ./templates/
 
 # Запускаем проверку и генерацию krakend.json
 # KrakenD использует ENV для выбора нужного блока настроек в шаблоне

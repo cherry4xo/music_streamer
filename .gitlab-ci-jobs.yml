@@ -29,7 +29,7 @@
         --progress=plain \
         -f ${SERVICE_PATH}/Dockerfile \
         -t ${CI_REGISTRY}/${CI_PROJECT_PATH}/${SERVICE_NAME}:${IMAGE_TAG} \
-        ${SERVICE_PATH}
+        .
     - docker push ${CI_REGISTRY}/${CI_PROJECT_PATH}/${SERVICE_NAME}:${IMAGE_TAG}
   rules:
     - if: $CI_COMMIT_BRANCH == "master"
