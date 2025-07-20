@@ -24,7 +24,7 @@ resource "kubernetes_deployment" "krakend" {
 
           image_pull_policy = "Always"
 
-          command = ["krakend", "run", "-d", "-c", "/etc/krakend/krakend.tmpl"]
+          command = ["krakend", "run", "-d", "-c", "/etc/krakend/krakend.json"]
           
           port {
             container_port = 8080
