@@ -85,6 +85,9 @@ setup-certificates:
     - ./generate.sh
   tags:
     - firstvds
+  artifacts:
+    paths:
+      - "${TF_ROOT}/certs/*"
 
 build-users-auth:
   extends: .build-template
@@ -115,7 +118,9 @@ validate:
   extends: .infra-template
   stage: validate
   needs:
-    - setup-cluster
+    - job: setup-cluster
+    - job: setup-certs
+      artifacts: true
   script:
     - terraform validate
 
@@ -123,8 +128,12 @@ plan-platform:
   extends: .infra-template
   stage: plan
   needs:
-    - setup-cluster
-    - validate
+    - job: setup-cluster
+    - job: validate
+    - job: setup-certs
+      artifacts: true
+    - job: setup-certs
+      artifacts: true
   script:
     - |
       terraform plan -out="platform.tfplan" -target=helm_release.vault -target=helm_release.postgres -target=helm_release.redis -target=helm_release.kafka
@@ -142,6 +151,8 @@ apply-platform:
   needs:
     - job: plan-platform
       artifacts: true
+    - job: setup-certs
+      artifacts: true
   rules:
     - if: $CI_COMMIT_BRANCH == "master"
       when: manual
@@ -152,7 +163,7 @@ seed-vault:
     - .vault-connection-template
   stage: seed-vault
   needs: 
-     - job: apply-platform
+    - job: apply-platform
   script:
     - *vault_connection_script_commands
     - vault login $VAULT_TOKEN
@@ -210,6 +221,8 @@ plan-apps:
   stage: plan-apps
   needs:
     - job: seed-vault
+    - job: setup-certs
+      artifacts: true
   before_script:
     - *infra_template_before_script_commands
   script:
@@ -238,6 +251,8 @@ apply-apps:
     - job: build-users-auth
     - job: build-users-account
     - job: seed-vault
+    - job: setup-certs
+      artifacts: true
   before_script:
     - *infra_template_before_script_commands
     - echo "Creating Kubernetes secret for GitLab registry..."
