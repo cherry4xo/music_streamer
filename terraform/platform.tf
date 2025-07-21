@@ -79,4 +79,22 @@ resource "helm_release" "kafka" {
   repository = "https://charts.bitnami.com/bitnami"
   version    = "26.3.1"
   chart      = "kafka"
+
+  set = [
+    {
+      name  = "listeners.client.protocol"
+      value = "PLAINTEXT"
+    },
+    {
+      name  = "advertisedListeners"
+      # This tells the brokers to advertise their internal Kubernetes DNS name.
+      # The `{{ .Service.Name }}` is a Helm template value that resolves to the correct service name.
+      value = "CLIENT://{{ .Service.Name }}.default.svc.cluster.local:9092"
+    },
+    {
+      # This maps the internal listener name to the protocol.
+      name = "listenerSecurityProtocolMap"
+      value = "CLIENT:PLAINTEXT"
+    }
+  ]
 }
