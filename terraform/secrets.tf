@@ -29,7 +29,7 @@ resource "kubernetes_secret" "internal_ca" {
     name = "internal-ca-secret"
   }
   data = {
-    "ca.crt" = file("./certs/ca.crt")
+    "ca.crt" = file("./terraform/certs/ca.crt")
   }
 }
 
@@ -39,8 +39,8 @@ resource "kubernetes_secret" "krakend_client_tls" {
   }
   type = "kubernetes.io/rls"
   data = {
-    "tls.crt" = file("./certs/krakend-client.crt")
-    "tls.key" = file("./certs/krakend-client.key")
+    "tls.crt" = file("./terraform/certs/krakend-client.crt")
+    "tls.key" = file("./terraform/certs/krakend-client.key")
   }
 }
 
@@ -52,7 +52,7 @@ resource "kubernetes_secret" "app_tls" {
   }
   type = "kubernetes.io/tls"
   data = {
-    "tls.crt" = file("./certs/${each.key}.crt")
-    "tls.key" = file("./certs/${each.key}.key")
+    "tls.crt" = file("./terraform/certs/${each.key}.crt")
+    "tls.key" = file("./terraform/certs/${each.key}.key")
   }
 }
