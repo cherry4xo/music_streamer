@@ -11,9 +11,18 @@
     "backend": [
         {
             "host": [
-                "{{ .settings.account_service_url }}"
+                "https://{{ .settings.account_service_url }}"
             ],
-            "url_pattern": "/me"
+            "url_pattern": "/me",
+            "extra_config": {
+                "transport/http/client": {
+                    "tls_config": {
+                        "ca_certs": ["/etc/krakend/certs/ca.crt"],
+                        "client_cert": "/etc/krakend/certs/tls.crt",
+                        "client_key": "/etc/krakend/certs/tls.key"
+                    }
+                }
+            }
         }
     ]
 },
@@ -30,9 +39,18 @@
     "backend": [
         {
             "host": [
-                "{{ .settings.account_service_url }}"
+                "https://{{ .settings.account_service_url }}"
             ],
-            "url_pattern": "/me/username"
+            "url_pattern": "/me/username",
+            "extra_config": {
+                "transport/http/client": {
+                    "tls_config": {
+                        "ca_certs": ["/etc/krakend/certs/ca.crt"],
+                        "client_cert": "/etc/krakend/certs/tls.crt",
+                        "client_key": "/etc/krakend/certs/tls.key"
+                    }
+                }
+            }
         }
     ]
 },
@@ -42,8 +60,17 @@
   "output_encoding": "no-op",
   "backend": [
     {
-      "host": ["{{ .settings.account_service_url }}"],
-      "url_pattern": "/docs"
+      "host": ["https://{{ .settings.account_service_url }}"],
+      "url_pattern": "/docs",
+      "extra_config": {
+            "transport/http/client": {
+                "tls_config": {
+                    "ca_certs": ["/etc/krakend/certs/ca.crt"],
+                    "client_cert": "/etc/krakend/certs/tls.crt",
+                    "client_key": "/etc/krakend/certs/tls.key"
+                }
+            }
+        }
     }
   ]
 },
@@ -53,8 +80,17 @@
   "output_encoding": "no-op",
   "backend": [
     {
-      "host": ["{{ .settings.account_service_url }}"],
-      "url_pattern": "/openapi.json"
+      "host": ["https://{{ .settings.account_service_url }}"],
+      "url_pattern": "/openapi.json",
+      "extra_config": {
+            "transport/http/client": {
+                "tls_config": {
+                    "ca_certs": ["/etc/krakend/certs/ca.crt"],
+                    "client_cert": "/etc/krakend/certs/tls.crt",
+                    "client_key": "/etc/krakend/certs/tls.key"
+                }
+            }
+        }
     }
   ]
 }

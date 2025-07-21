@@ -30,14 +30,48 @@ resource "kubernetes_deployment" "app_deployments" {
           name = "gitlab-registry-secret"
         }
 
+        volume {
+          name = "tls-volume"
+          secret {
+            secret_name = kubernetes_secret.app_tls[each.key].metadata[0].name
+          }
+        }
+        volume {
+          name = "ca-volume"
+          secret {
+            secret_name = kubernetes_secret.internal_ca.metadata[0].name
+          }
+        }
+
         container {
           name = each.key
           image = "${var.ci_registry}/${var.ci_project_path}/${each.key}:${var.image_tag}"
 
           image_pull_policy = "Always"
 
+          command = ["python3", "-u", "-m", "uvicorn", "main:app"]
+          args = [
+            "--host", "0.0.0.0",
+            "--port", tostring(each.value.container_port),
+            "--ssl-keyfile=/etc/tls/tls.key",
+            "--ssl-certfile=/etc/tls/tls.crt",
+            "--ssl-ca-certs=/etc/tls/ca.crt"
+          ]
+
           port {
             container_port = each.value.container_port
+          }
+
+          volume_mount {
+            name = "tls-volume"
+            mount_path = "/etc/tls"
+            read_only = true
+          }
+          volume_mount {
+            name       = "ca-volume"
+            mount_path = "/etc/tls/ca.crt"
+            sub_path   = "ca.crt"
+            read_only  = true
           }
         }
       }

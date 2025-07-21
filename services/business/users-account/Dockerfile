@@ -19,4 +19,7 @@ COPY ${SERVICE_PATH}/app/ app/
 COPY ${SERVICE_PATH}/main.py ./
 COPY ${SERVICE_PATH}/migrations/ ./migrations/
 
-CMD python3 -u -m uvicorn main:app --host "${API_HOST}" --port "${API_PORT}"
+# CMD ["python3", "-u", "-m", "uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8080", \
+#      "--ssl-keyfile=/etc/tls/tls.key", \
+#      "--ssl-certfile=/etc/tls/tls.crt", \
+#      "--ssl-ca-certs=/etc/tls/ca.crt"]

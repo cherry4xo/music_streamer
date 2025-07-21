@@ -91,15 +91,20 @@ services:
   krakend:
     # Use the official image
     build:
-      context: ./services/platform/krakend
+      context: .
+      dockerfile: ./services/platform/krakend/Dockerfile
       args:
         - ENV=local
-        - SERVICE_PATH=.
+        - SERVICE_PATH=./services/platform/krakend
     container_name: krakend
     ports:
       - "8088:8080" # Expose Krakend on host port 8088
     networks:
       - musicnet
+    volumes:
+      - ./terraform/certs/ca.crt:/etc/krakend/certs/ca.crt:ro
+      - ./terraform/certs/krakend-client.crt:/etc/krakend/certs/tls.crt:ro
+      - ./terraform/certs/krakend-client.key:/etc/krakend/certs/tls.key:ro
     command: ["krakend", "run", "-d", "-c", "/etc/krakend/krakend.json"]
     depends_on:
       # Krakend should wait for the apps to be healthy
@@ -114,7 +119,17 @@ services:
     volumes:
       # Optional: Mount local code for live reloading during development
       - ./services/business/users-auth:/usr/src/users
-      - ./keys:/usr/src/users/keys
+      - ./terraform/certs/users-auth.crt:/etc/tls/tls.crt:ro
+      - ./terraform/certs/users-auth.key:/etc/tls/tls.key:ro
+      - ./terraform/certs/ca.crt:/etc/tls/ca.crt:ro
+    command: [
+      "python3", "-u", "-m", "uvicorn", "main:app",
+      "--host", "0.0.0.0",
+      "--port", "8080",
+      "--ssl-keyfile=/etc/tls/tls.key",
+      "--ssl-certfile=/etc/tls/tls.crt",
+      "--ssl-ca-certs=/etc/tls/ca.crt"
+    ]
     ports:
       - "8001:8080"
     networks:
@@ -133,6 +148,17 @@ services:
     env_file: ./.env
     volumes:
       - ./services/business/users-account:/usr/src/users
+      - ./terraform/certs/users-account.crt:/etc/tls/tls.crt:ro
+      - ./terraform/certs/users-account.key:/etc/tls/tls.key:ro
+      - ./terraform/certs/ca.crt:/etc/tls/ca.crt:ro
+    command: [
+      "python3", "-u", "-m", "uvicorn", "main:app",
+      "--host", "0.0.0.0",
+      "--port", "8080",
+      "--ssl-keyfile=/etc/tls/tls.key",
+      "--ssl-certfile=/etc/tls/tls.crt",
+      "--ssl-ca-certs=/etc/tls/ca.crt"
+    ]
     ports:
       - "8002:8080"
     networks:

@@ -1,6 +1,6 @@
 {
   "port": 8080,
-  "auth_service_url": "http://users-auth:8080",
-  "account_service_url": "http://users-account:8080",
-  "jwk_url": "http://users-auth:8080"
+  "auth_service_url": "users-auth:8080",
+  "account_service_url": "users-account:8080",
+  "jwk_url": "users-auth:8080"
 }

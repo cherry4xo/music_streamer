@@ -3,8 +3,17 @@
   "method": "POST",
   "backend": [
     {
-      "host": ["{{ .settings.auth_service_url }}"],
-      "url_pattern": "/login"
+      "host": ["https://{{ .settings.auth_service_url }}"],
+      "url_pattern": "/login",
+      "extra_config": {
+        "transport/http/client": {
+          "tls_config": {
+            "ca_certs": ["/etc/krakend/certs/ca.crt"],
+            "client_cert": "/etc/krakend/certs/tls.crt",
+            "client_key": "/etc/krakend/certs/tls.key"
+          }
+        }
+      }
     }
   ]
 },
@@ -13,8 +22,17 @@
   "method": "POST",
   "backend": [
     {
-      "host": ["{{ .settings.auth_service_url }}"],
-      "url_pattern": "/access-token"
+      "host": ["https://{{ .settings.auth_service_url }}"],
+      "url_pattern": "/access-token",
+      "extra_config": {
+        "transport/http/client": {
+          "tls_config": {
+            "ca_certs": ["/etc/krakend/certs/ca.crt"],
+            "client_cert": "/etc/krakend/certs/tls.crt",
+            "client_key": "/etc/krakend/certs/tls.key"
+          }
+        }
+      }
     }
   ]
 },
@@ -23,8 +41,17 @@
   "method": "POST",
   "backend": [
     {
-      "host": ["{{ .settings.auth_service_url }}"],
-      "url_pattern": "/refresh-token"
+      "host": ["https://{{ .settings.auth_service_url }}"],
+      "url_pattern": "/refresh-token",
+      "extra_config": {
+        "transport/http/client": {
+          "tls_config": {
+            "ca_certs": ["/etc/krakend/certs/ca.crt"],
+            "client_cert": "/etc/krakend/certs/tls.crt",
+            "client_key": "/etc/krakend/certs/tls.key"
+          }
+        }
+      }
     }
   ]
 },
@@ -33,8 +60,17 @@
   "method": "POST",
   "backend": [
     {
-      "host": ["{{ .settings.auth_service_url }}"],
-      "url_pattern": "/refresh"
+      "host": ["https://{{ .settings.auth_service_url }}"],
+      "url_pattern": "/refresh",
+      "extra_config": {
+        "transport/http/client": {
+          "tls_config": {
+            "ca_certs": ["/etc/krakend/certs/ca.crt"],
+            "client_cert": "/etc/krakend/certs/tls.crt",
+            "client_key": "/etc/krakend/certs/tls.key"
+          }
+        }
+      }
     }
   ]
 },
@@ -44,8 +80,17 @@
   "output_encoding": "no-op",
   "backend": [
     {
-      "host": ["{{ .settings.auth_service_url }}"],
-      "url_pattern": "/docs"
+      "host": ["https://{{ .settings.auth_service_url }}"],
+      "url_pattern": "/docs",
+      "extra_config": {
+        "transport/http/client": {
+          "tls_config": {
+            "ca_certs": ["/etc/krakend/certs/ca.crt"],
+            "client_cert": "/etc/krakend/certs/tls.crt",
+            "client_key": "/etc/krakend/certs/tls.key"
+          }
+        }
+      }
     }
   ]
 },
@@ -55,8 +100,17 @@
   "output_encoding": "no-op",
   "backend": [
     {
-      "host": ["{{ .settings.auth_service_url }}"],
-      "url_pattern": "/openapi.json"
+      "host": ["https://{{ .settings.auth_service_url }}"],
+      "url_pattern": "/openapi.json",
+      "extra_config": {
+        "transport/http/client": {
+          "tls_config": {
+            "ca_certs": ["/etc/krakend/certs/ca.crt"],
+            "client_cert": "/etc/krakend/certs/tls.crt",
+            "client_key": "/etc/krakend/certs/tls.key"
+          }
+        }
+      }
     }
   ]
 },
@@ -66,8 +120,17 @@
   "output_encoding": "no-op",
   "backend": [
     {
-      "host": ["{{ .settings.auth_service_url }}"],
-      "url_pattern": "/create-user"
+      "host": ["https://{{ .settings.auth_service_url }}"],
+      "url_pattern": "/create-user",
+      "extra_config": {
+        "transport/http/client": {
+          "tls_config": {
+            "ca_certs": ["/etc/krakend/certs/ca.crt"],
+            "client_cert": "/etc/krakend/certs/tls.crt",
+            "client_key": "/etc/krakend/certs/tls.key"
+          }
+        }
+      }
     }
   ]
 }

@@ -180,3 +180,4 @@ services/platform/hashicorp/pass_secrets.sh
 environments/
 local.env
 keys/
+certs/
