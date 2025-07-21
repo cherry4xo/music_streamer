@@ -54,5 +54,6 @@ resource "kubernetes_secret" "app_tls" {
   data = {
     "tls.crt" = base64encode(file("./certs/${each.key}.crt"))
     "tls.key" = base64encode(file("./certs/${each.key}.key"))
+    "ca.crt"  = base64encode(file("./certs/ca.crt"))
   }
 }

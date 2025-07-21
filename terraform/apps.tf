@@ -36,12 +36,6 @@ resource "kubernetes_deployment" "app_deployments" {
             secret_name = kubernetes_secret.app_tls[each.key].metadata[0].name
           }
         }
-        volume {
-          name = "ca-volume"
-          secret {
-            secret_name = kubernetes_secret.internal_ca.metadata[0].name
-          }
-        }
 
         container {
           name = each.key
@@ -49,7 +43,8 @@ resource "kubernetes_deployment" "app_deployments" {
 
           image_pull_policy = "Always"
 
-          command = ["python3", "-u", "-m", "uvicorn", "main:app",
+          command = ["python3", "-u", "-m", "uvicorn", "main:app"]
+          args = [
             "--host", "0.0.0.0",
             "--port", tostring(each.value.container_port),
             "--ssl-keyfile=/etc/tls/tls.key",
@@ -62,14 +57,8 @@ resource "kubernetes_deployment" "app_deployments" {
           }
 
           volume_mount {
-            name = "tls-volume"
+            name       = "tls-volume"
             mount_path = "/etc/tls"
-            read_only = true
-          }
-          volume_mount {
-            name       = "ca-volume"
-            mount_path = "/etc/tls/ca.crt"
-            sub_path   = "ca.crt"
             read_only  = true
           }
         }
