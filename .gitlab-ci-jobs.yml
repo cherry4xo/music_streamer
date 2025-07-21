@@ -119,7 +119,7 @@ validate:
   stage: validate
   needs:
     - job: setup-cluster
-    - job: setup-certs
+    - job: setup-certificates
       artifacts: true
   script:
     - terraform validate
@@ -130,9 +130,7 @@ plan-platform:
   needs:
     - job: setup-cluster
     - job: validate
-    - job: setup-certs
-      artifacts: true
-    - job: setup-certs
+    - job: setup-certificates
       artifacts: true
   script:
     - |
@@ -151,7 +149,7 @@ apply-platform:
   needs:
     - job: plan-platform
       artifacts: true
-    - job: setup-certs
+    - job: setup-certificates
       artifacts: true
   rules:
     - if: $CI_COMMIT_BRANCH == "master"
@@ -221,7 +219,7 @@ plan-apps:
   stage: plan-apps
   needs:
     - job: seed-vault
-    - job: setup-certs
+    - job: setup-certificates
       artifacts: true
   before_script:
     - *infra_template_before_script_commands
@@ -251,7 +249,7 @@ apply-apps:
     - job: build-users-auth
     - job: build-users-account
     - job: seed-vault
-    - job: setup-certs
+    - job: setup-certificates
       artifacts: true
   before_script:
     - *infra_template_before_script_commands
