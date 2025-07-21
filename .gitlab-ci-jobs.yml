@@ -78,6 +78,14 @@
 
 # --- JOB DEFINITIONS ---
 
+setup-certificates:
+  stage: setup-certs
+  script:
+    - cd ${TF_ROOT}
+    - ./generate.sh
+  tags:
+    - firstvds
+
 build-users-auth:
   extends: .build-template
   variables: { SERVICE_NAME: "users-auth", SERVICE_PATH: "services/business/users-auth" }

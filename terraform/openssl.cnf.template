@@ -1,0 +1,26 @@
+[req]
+distinguished_name = req_distinguished_name
+req_extensions = v3_server
+prompt = no
+
+[req_distinguished_name]
+countryName                = "US"
+stateOrProvinceName        = "California"
+localityName               = "San Francisco"
+organizationName           = "MusicStreamer"
+commonName                 = __CNF_SERVICE_NAME__-service.default.svc.cluster.local
+
+[v3_server]
+subjectAltName = @alt_names
+keyUsage = digitalSignature, keyEncipherment
+extendedKeyUsage = serverAuth
+
+[v3_client]
+keyUsage = digitalSignature, keyEncipherment
+extendedKeyUsage = clientAuth
+
+[alt_names]
+DNS.1 = __CNF_SERVICE_NAME__-service.default.svc.cluster.local
+DNS.2 = __CNF_SERVICE_NAME__-service
+DNS.3 = __CNF_SERVICE_NAME__
+DNS.4 = localhost

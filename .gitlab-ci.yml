@@ -5,6 +5,7 @@ variables:
   IMAGE_TAG: $CI_COMMIT_SHA
 
 stages:
+  - setup-certs
   - build
   - setup
   - validate
