@@ -3,5 +3,10 @@
     "jwk_url": "{{ .settings.auth_service_url }}/.well-known/jwks.json",
     "roles_key": "scope",
     "propagate_claims": true,
-    "propagate_claims_to": ["user_id"]
+    "propagate_claims_to": ["user_id"],
+
+    "cache": true,
+    "cache_duration": "15m",
+
+    "disable_jwk_security": true
 }
