@@ -52,8 +52,8 @@ else:
     KAFKA_CONSUME_TOPICS = get_secret_from_vault("users-auth", "kafka_consume_topics").split(",")
     # SECRET_KEY = get_secret_from_vault("users-auth", "secret_key")
     CLIENT_ID = get_secret_from_vault("users-auth", "client_id")
-    ACCESS_TOKEN_EXPIRE_MINUTES = get_secret_from_vault("users-auth", "access_token_expire_minutes")
-    REFRESH_TOKEN_EXPIRE_MINUTES = get_secret_from_vault("users-auth", "refresh_token_expire_minutes")
+    ACCESS_TOKEN_EXPIRE_MINUTES = int(get_secret_from_vault("users-auth", "access_token_expire_minutes"))
+    REFRESH_TOKEN_EXPIRE_MINUTES = int(get_secret_from_vault("users-auth", "refresh_token_expire_minutes"))
     ROOT_PATH = get_secret_from_vault("users-auth", "root_path")
 
     JWT_PRIVATE_KEY = get_secret_from_vault("users-auth", "jwt_private_key")
