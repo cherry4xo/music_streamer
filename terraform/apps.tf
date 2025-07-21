@@ -49,8 +49,7 @@ resource "kubernetes_deployment" "app_deployments" {
 
           image_pull_policy = "Always"
 
-          command = ["python3", "-u", "-m", "uvicorn", "main:app"]
-          args = [
+          command = ["python3", "-u", "-m", "uvicorn", "main:app",
             "--host", "0.0.0.0",
             "--port", tostring(each.value.container_port),
             "--ssl-keyfile=/etc/tls/tls.key",
