@@ -3,33 +3,22 @@
   "port": {{ .settings.port }},
   "output_encoding": "json",
 
+  "client_tls": {
+    "ca_certs": ["/etc/krakend/certs/ca.crt"]
+  },
+
+  "tls": {
+      "public_key": "/etc/krakend/certs/tls.crt",
+      "private_key": "/etc/krakend/certs/tls.key"
+    },
+
   "extra_config": {
     "telemetry/logging": {
       "level": "DEBUG",
       "prefix": "[KRAKEND]",
       "stdout": true
     },
-    "security/cors": {{ template "cors.tmpl" . }},
-
-    "auth/validator": {
-      "alg": "RS256",
-      "jwk_url": "https://{{ .settings.auth_service_url }}/.well-known/jwks.json",
-      "roles_key": "scope",
-      "propagate_claims": true,
-      "propagate_claims_to": ["user_id"],
-      "cache": true,
-      "jwk_client_extra_config": {
-        "transport/http/client": {
-          "tls_config": {
-            "ca_certs": ["/etc/krakend/certs/ca.crt"],
-            "client_cert": "/etc/krakend/certs/tls.crt",
-            "client_key": "/etc/krakend/certs/tls.key",
-            "server_name": "{{ .settings.server_name }}",
-            "disable_system_ca_pool": true
-          }
-        }
-      }
-    }
+    "security/cors": {{ template "cors.tmpl" . }}
   },
 
   "endpoints": [

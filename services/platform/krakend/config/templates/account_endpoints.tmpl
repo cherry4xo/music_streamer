@@ -1,42 +1,38 @@
 {
     "endpoint": "/v1/account/me",
     "method": "GET",
-    "extra_config": {
-        "auth/validator": {
-            "roles": [
-                "user"
-            ]
-        }
-    },
     "backend": [
         {
             "host": [
                 "https://{{ .settings.account_service_url }}"
             ],
             "url_pattern": "/me",
-            {{ template "account_tls.tmpl" . }}
+            "extra_config": {
+                {{ template "backend_tls.tmpl" . }}
+            }
         }
-    ]
+    ],
+    "extra_config": {
+        {{ template "jwt_validator.tmpl" . }}
+    }
 },
 {
     "endpoint": "/v1/account/me/username",
     "method": "POST",
-    "extra_config": {
-        "auth/validator": {
-            "roles": [
-                "user"
-            ]
-        }
-    },
     "backend": [
         {
             "host": [
                 "https://{{ .settings.account_service_url }}"
             ],
             "url_pattern": "/me/username",
-            {{ template "account_tls.tmpl" . }}
+            "extra_config": {
+                {{ template "backend_tls.tmpl" . }}
+            }
         }
-    ]
+    ],
+    "extra_config": {
+        {{ template "jwt_validator.tmpl" . }}
+    }
 },
 {
   "endpoint": "/v1/account/docs",
@@ -46,7 +42,9 @@
     {
       "host": ["https://{{ .settings.account_service_url }}"],
       "url_pattern": "/docs",
-      {{ template "account_tls.tmpl" . }}
+      "extra_config": {
+                {{ template "backend_tls.tmpl" . }}
+            }
     }
   ]
 },
@@ -58,7 +56,9 @@
     {
       "host": ["https://{{ .settings.account_service_url }}"],
       "url_pattern": "/openapi.json",
-      {{ template "account_tls.tmpl" . }}
+      "extra_config": {
+                {{ template "backend_tls.tmpl" . }}
+            }
     }
   ]
 }

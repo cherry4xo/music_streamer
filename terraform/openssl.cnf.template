@@ -8,7 +8,7 @@ countryName                = "US"
 stateOrProvinceName        = "California"
 localityName               = "San Francisco"
 organizationName           = "MusicStreamer"
-commonName                 = __CNF_SERVICE_NAME__-service.default.svc.cluster.local
+commonName                 = __CNF_COMMON_NAME__
 
 [v3_server]
 subjectAltName = @alt_names

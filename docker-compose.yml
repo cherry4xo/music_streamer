@@ -103,8 +103,10 @@ services:
       - musicnet
     volumes:
       - ./terraform/certs/ca.crt:/etc/krakend/certs/ca.crt:ro
-      - ./terraform/certs/krakend-client.crt:/etc/krakend/certs/tls.crt:ro
-      - ./terraform/certs/krakend-client.key:/etc/krakend/certs/tls.key:ro
+      - ./terraform/certs/krakend.crt:/etc/krakend/certs/tls.crt:ro
+      - ./terraform/certs/krakend.key:/etc/krakend/certs/tls.key:ro
+      - ./terraform/certs/krakend-client.crt:/etc/krakend/certs/client.crt:ro
+      - ./terraform/certs/krakend-client.key:/etc/krakend/certs/client.key:ro
     command: ["krakend", "run", "-d", "-c", "/etc/krakend/krakend.json"]
     depends_on:
       # Krakend should wait for the apps to be healthy

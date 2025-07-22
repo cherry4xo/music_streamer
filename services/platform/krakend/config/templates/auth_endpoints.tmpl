@@ -5,7 +5,9 @@
     {
       "host": ["https://{{ .settings.auth_service_url }}"],
       "url_pattern": "/login",
-      {{ template "auth_tls.tmpl" . }}
+      "extra_config": {
+        {{ template "backend_tls.tmpl" . }}
+      }
     }
   ]
 },
@@ -16,7 +18,9 @@
     {
       "host": ["https://{{ .settings.auth_service_url }}"],
       "url_pattern": "/access-token",
-      {{ template "auth_tls.tmpl" . }}
+      "extra_config": {
+        {{ template "backend_tls.tmpl" . }}
+      }
     }
   ]
 },
@@ -27,7 +31,9 @@
     {
       "host": ["https://{{ .settings.auth_service_url }}"],
       "url_pattern": "/refresh-token",
-      {{ template "auth_tls.tmpl" . }}
+      "extra_config": {
+        {{ template "backend_tls.tmpl" . }}
+      }
     }
   ]
 },
@@ -38,7 +44,9 @@
     {
       "host": ["https://{{ .settings.auth_service_url }}"],
       "url_pattern": "/refresh",
-      {{ template "auth_tls.tmpl" . }}
+      "extra_config": {
+        {{ template "backend_tls.tmpl" . }}
+      }
     }
   ]
 },
@@ -50,7 +58,9 @@
     {
       "host": ["https://{{ .settings.auth_service_url }}"],
       "url_pattern": "/docs",
-      {{ template "auth_tls.tmpl" . }}
+      "extra_config": {
+        {{ template "backend_tls.tmpl" . }}
+      }
     }
   ]
 },
@@ -62,7 +72,9 @@
     {
       "host": ["https://{{ .settings.auth_service_url }}"],
       "url_pattern": "/openapi.json",
-      {{ template "auth_tls.tmpl" . }}
+      "extra_config": {
+        {{ template "backend_tls.tmpl" . }}
+      }
     }
   ]
 },
@@ -74,7 +86,9 @@
     {
       "host": ["https://{{ .settings.auth_service_url }}"],
       "url_pattern": "/create-user",
-      {{ template "auth_tls.tmpl" . }}
+      "extra_config": {
+        {{ template "backend_tls.tmpl" . }}
+      }
     }
   ]
 }

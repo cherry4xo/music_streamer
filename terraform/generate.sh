@@ -24,14 +24,17 @@ echo "--> CA created successfully."
 # -------------------------------------------------------------------
 generate_server_cert() {
   local SERVICE_NAME=$1
+  local COMMON_NAME_OVERRIDE=${2:-${SERVICE_NAME}-service.default.svc.cluster.local} # Allow overriding CN
   echo "\n--- Generating Server Certificate for '${SERVICE_NAME}' ---"
 
   # Generate private key
   openssl genrsa -out ${CERT_DIR}/${SERVICE_NAME}.key 2048
 
-  # Generate temporary config with real service name
+  # Generate temporary config with real service name and CN
   local TMP_CONF="${CERT_DIR}/openssl-${SERVICE_NAME}.cnf"
-  sed "s/__CNF_SERVICE_NAME__/${SERVICE_NAME}/g" openssl.cnf.template > ${TMP_CONF}
+  sed -e "s/__CNF_SERVICE_NAME__/${SERVICE_NAME}/g" \
+      -e "s/__CNF_COMMON_NAME__/${COMMON_NAME_OVERRIDE}/g" \
+      openssl.cnf.template > ${TMP_CONF}
 
   # Generate CSR using the temporary config
   openssl req -new -key ${CERT_DIR}/${SERVICE_NAME}.key \
@@ -54,13 +57,17 @@ generate_server_cert() {
 # -------------------------------------------------------------------
 # Phase 2: Generate Server Certificates
 # -------------------------------------------------------------------
+# For backend services
 generate_server_cert "users-auth"
 generate_server_cert "users-account"
 
+# For the KrakenD Gateway itself
+generate_server_cert "krakend" "krakend-gateway" # Use a distinct CN like 'krakend-gateway'
+
 # -------------------------------------------------------------------
-# Phase 3: Create Client Certificate for KrakenD
+# Phase 3: Create Client Certificate for KrakenD (for mTLS)
 # -------------------------------------------------------------------
-echo "\n--- Phase 3: Creating the Client Certificate for KrakenD ---"
+echo "\n--- Phase 3: Creating the Client Certificate for KrakenD (for mTLS) ---"
 openssl genrsa -out ${CERT_DIR}/krakend-client.key 2048
 openssl req -new -key ${CERT_DIR}/krakend-client.key -out ${CERT_DIR}/krakend-client.csr \
   -subj "/C=US/ST=California/L=San Francisco/O=MusicStreamer/CN=krakend-client"
@@ -75,5 +82,5 @@ openssl x509 -req \
 echo "\n--- Cleaning up temporary CSR files ---"
 rm -f ${CERT_DIR}/*.csr
 
-echo "\n--- mTLS Certificate generation complete! ---"
+echo "\n--- TLS/mTLS Certificate generation complete! ---"
 echo "All files are located in the '${CERT_DIR}' directory."

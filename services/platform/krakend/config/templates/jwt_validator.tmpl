@@ -1,11 +1,10 @@
-{
-    "alg": "RS256",
-    "jwk_url": "https://{{ .settings.auth_service_url }}/.well-known/jwks.json",
-    "jwk_local_ca": "/etc/krakend/certs/ca.crt",
-    "roles_key": "scope",
-    "propagate_claims": true,
-    "propagate_claims_to": ["user_id"],
-
-    "cache": true,
-    "cache_duration": "15m"
+"auth/validator": {
+  "alg": "RS256",
+  "jwk_url": "https://{{ .settings.auth_service_url }}/.well-known/jwks.json",
+  "cache": true,
+  "cache_duration": 900,
+  "propagate_claims": [
+    ["sub", "X-User-Id"],
+    ["role", "X-User-Role"]
+  ]
 }

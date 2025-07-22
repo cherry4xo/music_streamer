@@ -32,7 +32,7 @@ async def get_access_token(credentials: OAuth2PasswordRequestForm = Depends()):
 
     token_data = {
         "user_uuid": str(user.uuid),
-        "scope": user_roles,
+        "roles": user_roles,
     }
 
     access_token = create_access_token(data=token_data, expires_delta=access_token_expires)

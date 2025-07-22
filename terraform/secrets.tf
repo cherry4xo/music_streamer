@@ -38,9 +38,11 @@ resource "kubernetes_secret" "krakend_tls" {
     name = "krakend-tls-secret"
   }
   data = {
-    "tls.crt" = file("./certs/krakend-client.crt")
-    "tls.key" = file("./certs/krakend-client.key")
+    "tls.crt" = file("./certs/krakend.crt")
+    "tls.key" = file("./certs/krakend.key")
     "ca.crt" = file("./certs/ca.crt")
+    "client.crt" = file("./certs/krakend-client.crt")
+    "client.key" = file("./certs/krakend-client.key")
   }
 }
 
