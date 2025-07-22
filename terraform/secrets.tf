@@ -29,7 +29,7 @@ resource "kubernetes_secret" "internal_ca" {
     name = "internal-ca-secret"
   }
   data = {
-    "ca.crt" = base64encode(file("./certs/ca.crt"))
+    "ca.crt" = file("./certs/ca.crt")
   }
 }
 
@@ -38,8 +38,8 @@ resource "kubernetes_secret" "krakend_client_tls" {
     name = "krakend-client-tls-secret"
   }
   data = {
-    "tls.crt" = base64encode(file("./certs/krakend-client.crt"))
-    "tls.key" = base64encode(file("./certs/krakend-client.key"))
+    "tls.crt" = file("./certs/krakend-client.crt")
+    "tls.key" = file("./certs/krakend-client.key")
   }
 }
 
@@ -50,8 +50,8 @@ resource "kubernetes_secret" "app_tls" {
     name = "${each.key}-tls-secret"
   }
   data = {
-    "tls.crt" = base64encode(file("./certs/${each.key}.crt"))
-    "tls.key" = base64encode(file("./certs/${each.key}.key"))
-    "ca.crt"  = base64encode(file("./certs/ca.crt"))
+    "tls.crt" = file("./certs/${each.key}.crt")
+    "tls.key" = file("./certs/${each.key}.key")
+    "ca.crt"  = file("./certs/ca.crt")
   }
 }
