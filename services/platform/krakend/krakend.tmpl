@@ -11,10 +11,6 @@
     },
     "security/cors": {{ template "cors.tmpl" . }},
 
-    "transport/http/client": {
-      "allow_insecure_connections": false
-    },
-
     "auth/validator": {
       "alg": "RS256",
       "jwk_url": "https://{{ .settings.auth_service_url }}/.well-known/jwks.json",
@@ -27,7 +23,9 @@
           "tls_config": {
             "ca_certs": ["/etc/krakend/certs/ca.crt"],
             "client_cert": "/etc/krakend/certs/tls.crt",
-            "client_key": "/etc/krakend/certs/tls.key"
+            "client_key": "/etc/krakend/certs/tls.key",
+            "server_name": "{{ .settings.server_name }}",
+            "disable_system_ca_pool": true
           }
         }
       }

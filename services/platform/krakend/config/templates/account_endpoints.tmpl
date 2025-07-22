@@ -14,15 +14,7 @@
                 "https://{{ .settings.account_service_url }}"
             ],
             "url_pattern": "/me",
-            "extra_config": {
-                "transport/http/client": {
-                    "tls_config": {
-                        "ca_certs": ["/etc/krakend/certs/ca.crt"],
-                        "client_cert": "/etc/krakend/certs/tls.crt",
-                        "client_key": "/etc/krakend/certs/tls.key"
-                    }
-                }
-            }
+            {{ template "account_tls.tmpl" . }}
         }
     ]
 },
@@ -42,15 +34,7 @@
                 "https://{{ .settings.account_service_url }}"
             ],
             "url_pattern": "/me/username",
-            "extra_config": {
-                "transport/http/client": {
-                    "tls_config": {
-                        "ca_certs": ["/etc/krakend/certs/ca.crt"],
-                        "client_cert": "/etc/krakend/certs/tls.crt",
-                        "client_key": "/etc/krakend/certs/tls.key"
-                    }
-                }
-            }
+            {{ template "account_tls.tmpl" . }}
         }
     ]
 },
@@ -62,15 +46,7 @@
     {
       "host": ["https://{{ .settings.account_service_url }}"],
       "url_pattern": "/docs",
-      "extra_config": {
-            "transport/http/client": {
-                "tls_config": {
-                    "ca_certs": ["/etc/krakend/certs/ca.crt"],
-                    "client_cert": "/etc/krakend/certs/tls.crt",
-                    "client_key": "/etc/krakend/certs/tls.key"
-                }
-            }
-        }
+      {{ template "account_tls.tmpl" . }}
     }
   ]
 },
@@ -82,15 +58,7 @@
     {
       "host": ["https://{{ .settings.account_service_url }}"],
       "url_pattern": "/openapi.json",
-      "extra_config": {
-            "transport/http/client": {
-                "tls_config": {
-                    "ca_certs": ["/etc/krakend/certs/ca.crt"],
-                    "client_cert": "/etc/krakend/certs/tls.crt",
-                    "client_key": "/etc/krakend/certs/tls.key"
-                }
-            }
-        }
+      {{ template "account_tls.tmpl" . }}
     }
   ]
 }
