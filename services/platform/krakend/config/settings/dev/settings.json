@@ -1,7 +1,7 @@
 {
   "port": 8080,
   "auth_service_url": "users-auth-service:8080",
-  "account_service_url": "users-account-service:8080",
+  "account_service_url": "users-account-service:8081",
   "jwk_url": "users-auth-service:8080",
   "account_server": "users-account-service.default.svc.cluster.local",
   "auth_server": "users-auth-service.default.svc.cluster.local"
