@@ -33,13 +33,14 @@ resource "kubernetes_secret" "internal_ca" {
   }
 }
 
-resource "kubernetes_secret" "krakend_client_tls" {
+resource "kubernetes_secret" "krakend_tls" {
   metadata {
-    name = "krakend-client-tls-secret"
+    name = "krakend-tls-secret"
   }
   data = {
     "tls.crt" = file("./certs/krakend-client.crt")
     "tls.key" = file("./certs/krakend-client.key")
+    "ca.crt" = file("./certs/ca.crt")
   }
 }
 

@@ -19,15 +19,9 @@ resource "kubernetes_deployment" "krakend" {
       }
       spec {
         volume {
-          name = "ca-volume"
+          name = "krakend-tls-volume"
           secret {
-            secret_name = kubernetes_secret.internal_ca.metadata[0].name
-          }
-        }
-        volume {
-          name = "krakend-client-tls-volume"
-          secret {
-            secret_name = kubernetes_secret.krakend_client_tls.metadata[0].name
+            secret_name = kubernetes_secret.krakend_tls.metadata[0].name
           }
         }
         container {
@@ -37,16 +31,9 @@ resource "kubernetes_deployment" "krakend" {
           image_pull_policy = "Always"
 
           command = ["krakend", "run", "-d", "-c", "/etc/krakend/krakend.json"]
-          
-          volume_mount {
-            name = "ca-volume"
-            mount_path = "/etc/ssl/certs/ca.crt"
-            sub_path = "ca.crt"
-            read_only = true
-          }
 
           volume_mount {
-            name = "krakend-client-tls-volume"
+            name = "krakend-tls-volume"
             mount_path = "/etc/krakend/certs"
             read_only = true
           }
