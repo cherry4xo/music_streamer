@@ -37,7 +37,6 @@ resource "kubernetes_secret" "krakend_client_tls" {
   metadata {
     name = "krakend-client-tls-secret"
   }
-  type = "kubernetes.io/rls"
   data = {
     "tls.crt" = base64encode(file("./certs/krakend-client.crt"))
     "tls.key" = base64encode(file("./certs/krakend-client.key"))
@@ -50,7 +49,6 @@ resource "kubernetes_secret" "app_tls" {
   metadata {
     name = "${each.key}-tls-secret"
   }
-  type = "kubernetes.io/tls"
   data = {
     "tls.crt" = base64encode(file("./certs/${each.key}.crt"))
     "tls.key" = base64encode(file("./certs/${each.key}.key"))
