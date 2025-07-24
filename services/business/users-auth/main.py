@@ -1,7 +1,9 @@
+import ssl
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from contextlib import asynccontextmanager
 from prometheus_fastapi_instrumentator import Instrumentator
+import uvicorn
 
 from app.db import init
 from app import settings
@@ -46,3 +48,15 @@ async def lifespan_wrapper(app):
 app.router.lifespan_context = lifespan_wrapper
 init_middlewares(app)
 app.include_router(login_router, tags=["login"])
+
+if __name__ == "__main__":
+    uvicorn.run(
+        app,
+        host="0.0.0.0",
+        port=8080,
+        log_level="debug",
+        ssl_cert_reqs=ssl.CERT_REQUIRED,
+        ssl_ca_certs="/etc/tls/ca.crt",
+        ssl_keyfile="/etc/tls/tls.key",
+        ssl_certfile="/etc/tls/tls.crt"
+    )

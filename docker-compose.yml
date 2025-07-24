@@ -103,44 +103,48 @@ services:
       - musicnet
     volumes:
       - ./terraform/certs/ca.crt:/etc/krakend/certs/ca.crt:ro
-      - ./terraform/certs/krakend.crt:/etc/krakend/certs/tls.crt:ro
-      - ./terraform/certs/krakend.key:/etc/krakend/certs/tls.key:ro
-      - ./terraform/certs/krakend-client.crt:/etc/krakend/certs/client.crt:ro
-      - ./terraform/certs/krakend-client.key:/etc/krakend/certs/client.key:ro
+      - ./terraform/certs/krakend.crt:/etc/krakend/certs/krakend.crt:ro
+      - ./terraform/certs/krakend.key:/etc/krakend/certs/krakend.key:ro
     command: ["krakend", "run", "-d", "-c", "/etc/krakend/krakend.json"]
     depends_on:
       # Krakend should wait for the apps to be healthy
-      - users-auth
-      - users-account
+      users-auth:
+        condition: service_healthy
 
   users-auth:
-    # Build the image from its local Dockerfile
     build: ./services/business/users-auth
     container_name: users-auth
-    env_file: ./.env # Load all environment variables from the .env file
+    env_file: ./.env
     volumes:
-      # Optional: Mount local code for live reloading during development
       - ./services/business/users-auth:/usr/src/users
       - ./terraform/certs/users-auth.crt:/etc/tls/tls.crt:ro
       - ./terraform/certs/users-auth.key:/etc/tls/tls.key:ro
       - ./terraform/certs/ca.crt:/etc/tls/ca.crt:ro
-    command: [
-      "python3", "-u", "-m", "uvicorn", "main:app",
-      "--host", "0.0.0.0",
-      "--port", "8080",
-      "--ssl-keyfile=/etc/tls/tls.key",
-      "--ssl-certfile=/etc/tls/tls.crt",
-      "--ssl-ca-certs=/etc/tls/ca.crt"
-    ]
+    command:
+      - "uvicorn"
+      - "main:app"
+      - "--host"
+      - "0.0.0.0"
+      - "--port"
+      - "8080"
+      - "--ssl-keyfile=/etc/tls/tls.key"
+      - "--ssl-certfile=/etc/tls/tls.crt"
+      - "--ssl-ca-certs=/etc/tls/ca.crt"
     ports:
       - "8001:8080"
     networks:
       - musicnet
+    healthcheck:
+      test: ["CMD", "curl", "--fail", "--insecure", "https://localhost:8080/.well-known/jwks.json"]
+      interval: 5s
+      timeout: 10s
+      retries: 5
+      start_period: 20s
     depends_on:
       postgres-auth:
-        condition: service_healthy # Wait for Postgres to be ready
+        condition: service_healthy
       redis:
-        condition: service_healthy # Wait for Redis to be ready
+        condition: service_healthy
       kafka:
         condition: service_healthy
 
@@ -153,14 +157,16 @@ services:
       - ./terraform/certs/users-account.crt:/etc/tls/tls.crt:ro
       - ./terraform/certs/users-account.key:/etc/tls/tls.key:ro
       - ./terraform/certs/ca.crt:/etc/tls/ca.crt:ro
-    command: [
-      "python3", "-u", "-m", "uvicorn", "main:app",
-      "--host", "0.0.0.0",
-      "--port", "8080",
-      "--ssl-keyfile=/etc/tls/tls.key",
-      "--ssl-certfile=/etc/tls/tls.crt",
-      "--ssl-ca-certs=/etc/tls/ca.crt"
-    ]
+    command:
+      - "uvicorn"
+      - "main:app"
+      - "--host"
+      - "0.0.0.0"
+      - "--port"
+      - "8080"
+      - "--ssl-keyfile=/etc/tls/tls.key"
+      - "--ssl-certfile=/etc/tls/tls.crt"
+      - "--ssl-ca-certs=/etc/tls/ca.crt"
     ports:
       - "8002:8080"
     networks:

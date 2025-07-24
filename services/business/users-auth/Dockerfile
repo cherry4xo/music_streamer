@@ -7,6 +7,9 @@ ENV PYTHONPATH=/home/code/ PYTHONHASHSEED=0
 ENV API_HOST=0.0.0.0
 ENV API_PORT=8080
 
+RUN apt update -y
+RUN apt install -y curl
+
 COPY ${SERVICE_PATH}/requirements.txt ./
 
 RUN python3 -m pip install --upgrade pip

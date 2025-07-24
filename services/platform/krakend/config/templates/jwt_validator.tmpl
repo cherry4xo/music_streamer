@@ -3,8 +3,13 @@
   "jwk_url": "https://{{ .settings.auth_service_url }}/.well-known/jwks.json",
   "cache": true,
   "cache_duration": 900,
+  "roles_key": "roles",
   "propagate_claims": [
     ["sub", "X-User-Id"],
-    ["role", "X-User-Role"]
-  ]
+    ["roles", "X-User-Role"]
+  ],
+  "disable_jwk_security": true,
+  "audience": ["api-gateway"],
+  "issuer": "users-auth",
+  "error_msg": "Invalid or missing token. Please check Authorization header."
 }

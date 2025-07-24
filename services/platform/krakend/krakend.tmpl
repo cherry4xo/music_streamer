@@ -3,14 +3,20 @@
   "port": {{ .settings.port }},
   "output_encoding": "json",
 
-  "client_tls": {
+  "tls": {
+    "keys": [
+      {
+        "public_key": "/etc/krakend/certs/krakend.crt",
+        "private_key": "/etc/krakend/certs/krakend.key"
+      }
+    ],
     "ca_certs": ["/etc/krakend/certs/ca.crt"]
   },
 
-  "tls": {
-      "public_key": "/etc/krakend/certs/tls.crt",
-      "private_key": "/etc/krakend/certs/tls.key"
-    },
+  "client_tls": {
+    "allow_insecure_connections": false,
+    "ca_certs": ["/etc/krakend/certs/ca.crt"]
+  },
 
   "extra_config": {
     "telemetry/logging": {

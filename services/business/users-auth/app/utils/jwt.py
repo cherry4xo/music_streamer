@@ -21,9 +21,8 @@ def create_access_token(*, data: dict, expires_delta: timedelta = None):
         expire = datetime.now() + timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
     to_encode.update({
         "exp": expire.timestamp(), 
-        "sub": access_token_jwt_subject,
         "iss": JWT_ISSUER,
-        "aud": JWT_AUDIENCE
+        "aud": [JWT_AUDIENCE]
     })
     encoded_jwt = jwt.encode(
         payload=to_encode, 
@@ -41,10 +40,10 @@ def create_refresh_token(*, data: dict, expires_delta: timedelta = None):
     else:
         expire = datetime.now() + timedelta(minutes=settings.REFRESH_TOKEN_EXPIRE_MINUTES)
     to_encode.update({
-        "exp": expire.timestamp(), 
-        "sub": refresh_token_jwt_subject,
+        "exp": expire.timestamp(),
         "iss": JWT_ISSUER,
-        "aud": JWT_AUDIENCE
+        "aud": JWT_AUDIENCE,
+        "token_type": "refresh"
     })
     encoded_jwt = jwt.encode(
         payload=to_encode, 

@@ -1,6 +1,6 @@
 [req]
 distinguished_name = req_distinguished_name
-req_extensions = v3_server
+req_extensions = v3_req # <<< CHANGED: Point to a new, minimal section for the CSR
 prompt = no
 
 [req_distinguished_name]
@@ -10,14 +10,34 @@ localityName               = "San Francisco"
 organizationName           = "MusicStreamer"
 commonName                 = __CNF_COMMON_NAME__
 
+# --- New section just for the CSR ---
+# It only needs to contain extensions that are part of the request itself, like SANs.
+[v3_req]
+subjectAltName = @alt_names
+
+# --- CA extensions from the previous step ---
+[v3_ca]
+subjectKeyIdentifier = hash
+authorityKeyIdentifier = keyid:always,issuer
+basicConstraints = critical, CA:true
+keyUsage = critical, digitalSignature, cRLSign, keyCertSign
+
+# --- This section is now ONLY used during the final signing step ---
 [v3_server]
 subjectAltName = @alt_names
 keyUsage = digitalSignature, keyEncipherment
 extendedKeyUsage = serverAuth
+basicConstraints = CA:FALSE
+authorityKeyIdentifier = keyid,issuer # This is OK here, as the CA is present during signing
+subjectKeyIdentifier = hash
 
+# --- Client cert section remains the same ---
 [v3_client]
 keyUsage = digitalSignature, keyEncipherment
 extendedKeyUsage = clientAuth
+basicConstraints = CA:FALSE
+authorityKeyIdentifier = keyid,issuer
+subjectKeyIdentifier = hash
 
 [alt_names]
 DNS.1 = __CNF_SERVICE_NAME__-service.default.svc.cluster.local

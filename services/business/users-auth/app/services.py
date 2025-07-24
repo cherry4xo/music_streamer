@@ -29,14 +29,18 @@ async def get_access_token(credentials: OAuth2PasswordRequestForm = Depends()):
     refresh_token_expires = timedelta(minutes=settings.REFRESH_TOKEN_EXPIRE_MINUTES)
 
     user_roles = user.roles
+    if isinstance(user_roles, str):
+        user_roles = [user_roles] 
 
     token_data = {
-        "user_uuid": str(user.uuid),
+        "sub": str(user.uuid),
         "roles": user_roles,
     }
 
+    print(token_data)
+
     access_token = create_access_token(data=token_data, expires_delta=access_token_expires)
-    refresh_token = create_refresh_token(data=token_data, expires_delta=refresh_token_expires)
+    refresh_token = create_refresh_token(data={"sub": str(user.uuid)}, expires_delta=refresh_token_expires)
 
     metrics.auth_logins_total.labels(status="success").inc()
 
@@ -57,7 +61,16 @@ async def get_refresh_token(credentials: OAuth2PasswordRequestForm = Depends()):
     
     refresh_token_expires = timedelta(minutes=settings.REFRESH_TOKEN_EXPIRE_MINUTES)
 
-    refresh_token = create_refresh_token(data={"user_uuid": str(user.uuid)}, expires_delta=refresh_token_expires)
+    user_roles = user.roles
+    if isinstance(user_roles, str):
+        user_roles = [user_roles] 
+
+    new_token_data = {
+        "sub": str(user.uuid),
+        "roles": user_roles,
+    }
+
+    refresh_token = create_refresh_token(data=new_token_data, expires_delta=refresh_token_expires)
 
     metrics.auth_refresh_token_logins_total.labels(status="success").inc()
 
@@ -76,7 +89,16 @@ async def refresh_token(token: RefreshToken):
             detail="The user with uuid in token does not exist"
         )
     
-    new_access_token = create_access_token(data={"user_uuid": str(user.uuid)}, expires_delta=access_token_expires)
+    user_roles = user.roles
+    if isinstance(user_roles, str):
+        user_roles = [user_roles] 
+
+    new_token_data = {
+        "sub": str(user.uuid),
+        "roles": user_roles,
+    }
+    
+    new_access_token = create_access_token(data=new_token_data, expires_delta=access_token_expires)
 
     metrics.auth_token_refreshes_total.labels(status="success").inc()
 

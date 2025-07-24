@@ -1,64 +1,60 @@
 {
     "endpoint": "/v1/account/me",
     "method": "GET",
+    "input_headers": ["X-User-Id"],
+    "output_encoding": "no-op",
     "backend": [
-        {
-            "host": [
-                "https://{{ .settings.account_service_url }}"
-            ],
-            "url_pattern": "/me",
-            "extra_config": {
-                {{ template "backend_tls.tmpl" . }}
-            }
-        }
+      {
+        "host": [
+            "https://{{ .settings.account_service_url }}"
+        ],
+        "url_pattern": "/me",
+        "accepted_status": [200, 400, 404],
+        "encoding": "no-op",
+        "sd": "static" 
+      }
     ],
     "extra_config": {
-        {{ template "jwt_validator.tmpl" . }}
+      {{ template "jwt_validator.tmpl" . }}
     }
 },
 {
     "endpoint": "/v1/account/me/username",
     "method": "POST",
+    "input_headers": ["X-User-Id"],
     "backend": [
         {
             "host": [
                 "https://{{ .settings.account_service_url }}"
             ],
             "url_pattern": "/me/username",
-            "extra_config": {
-                {{ template "backend_tls.tmpl" . }}
-            }
+            "accepted_status": [200, 400, 404],
+            "encoding": "no-op",
+            "sd": "static" 
         }
     ],
     "extra_config": {
-        {{ template "jwt_validator.tmpl" . }}
+      {{ template "jwt_validator.tmpl" . }}
     }
 },
 {
   "endpoint": "/v1/account/docs",
   "method": "GET",
-  "output_encoding": "no-op",
   "backend": [
     {
       "host": ["https://{{ .settings.account_service_url }}"],
-      "url_pattern": "/docs",
-      "extra_config": {
-                {{ template "backend_tls.tmpl" . }}
-            }
+      "url_pattern": "/docs"
     }
   ]
 },
 {
   "endpoint": "/v1/account/openapi.json",
   "method": "GET",
-  "output_encoding": "no-op",
+
   "backend": [
     {
       "host": ["https://{{ .settings.account_service_url }}"],
-      "url_pattern": "/openapi.json",
-      "extra_config": {
-                {{ template "backend_tls.tmpl" . }}
-            }
+      "url_pattern": "/openapi.json"
     }
   ]
 }

@@ -1,3 +1,4 @@
+import logging
 from typing import Annotated
 from fastapi import APIRouter, Depends, HTTPException, Header, status
 from pydantic import UUID4
@@ -9,6 +10,8 @@ from app import services
 
 router = APIRouter()
 
+logger = logging.getLogger(__name__)
+
 
 async def get_user_id_from_gateway(x_user_id: Annotated[str | None, Header(alias="X-User-Id")] = None) -> str:
     """
@@ -16,6 +19,7 @@ async def get_user_id_from_gateway(x_user_id: Annotated[str | None, Header(alias
     Raises an exception if the header is missing, implying a configuration error
     or unauthorized access attempt bypassing the gateway.
     """
+    logger.info(f"Getting user {x_user_id}")
     if x_user_id is None:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
@@ -28,6 +32,7 @@ async def get_user_id_from_gateway(x_user_id: Annotated[str | None, Header(alias
 async def route_me(
     user_id: UUID4 = Depends(get_user_id_from_gateway)
 ):
+    logger.info(f"Getting user {user_id}")
     return await services.get_user_me(user_id=user_id)
 
 

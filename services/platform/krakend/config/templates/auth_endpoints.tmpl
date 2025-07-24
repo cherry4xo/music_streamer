@@ -4,10 +4,7 @@
   "backend": [
     {
       "host": ["https://{{ .settings.auth_service_url }}"],
-      "url_pattern": "/login",
-      "extra_config": {
-        {{ template "backend_tls.tmpl" . }}
-      }
+      "url_pattern": "/login"
     }
   ]
 },
@@ -17,10 +14,7 @@
   "backend": [
     {
       "host": ["https://{{ .settings.auth_service_url }}"],
-      "url_pattern": "/access-token",
-      "extra_config": {
-        {{ template "backend_tls.tmpl" . }}
-      }
+      "url_pattern": "/access-token"
     }
   ]
 },
@@ -30,10 +24,7 @@
   "backend": [
     {
       "host": ["https://{{ .settings.auth_service_url }}"],
-      "url_pattern": "/refresh-token",
-      "extra_config": {
-        {{ template "backend_tls.tmpl" . }}
-      }
+      "url_pattern": "/refresh-token"
     }
   ]
 },
@@ -43,10 +34,7 @@
   "backend": [
     {
       "host": ["https://{{ .settings.auth_service_url }}"],
-      "url_pattern": "/refresh",
-      "extra_config": {
-        {{ template "backend_tls.tmpl" . }}
-      }
+      "url_pattern": "/refresh"
     }
   ]
 },
@@ -57,38 +45,27 @@
   "backend": [
     {
       "host": ["https://{{ .settings.auth_service_url }}"],
-      "url_pattern": "/docs",
-      "extra_config": {
-        {{ template "backend_tls.tmpl" . }}
-      }
+      "url_pattern": "/docs"
     }
   ]
 },
 {
   "endpoint": "/v1/auth/openapi.json",
   "method": "GET",
-  "output_encoding": "no-op",
   "backend": [
     {
       "host": ["https://{{ .settings.auth_service_url }}"],
-      "url_pattern": "/openapi.json",
-      "extra_config": {
-        {{ template "backend_tls.tmpl" . }}
-      }
+      "url_pattern": "/openapi.json"
     }
   ]
 },
 {
   "endpoint": "/v1/auth/create-user",
   "method": "POST",
-  "output_encoding": "no-op",
   "backend": [
     {
       "host": ["https://{{ .settings.auth_service_url }}"],
-      "url_pattern": "/create-user",
-      "extra_config": {
-        {{ template "backend_tls.tmpl" . }}
-      }
+      "url_pattern": "/create-user"
     }
   ]
 }

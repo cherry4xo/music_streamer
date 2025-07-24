@@ -16,7 +16,8 @@ rm -f ${CERT_DIR}/*.key ${CERT_DIR}/*.csr ${CERT_DIR}/*.crt ${CERT_DIR}/*.srl
 echo "\n--- Phase 1: Creating the Certificate Authority (CA) ---"
 openssl genrsa -out ${CERT_DIR}/ca.key 4096
 openssl req -x509 -new -nodes -key ${CERT_DIR}/ca.key -sha256 -days ${DAYS} -out ${CERT_DIR}/ca.crt \
-  -subj "/C=US/ST=California/L=San Francisco/O=MusicStreamer CA/CN=music-streamer-ca"
+  -subj "/C=US/ST=California/L=San Francisco/O=MusicStreamer CA/CN=music-streamer-ca" \
+  -extensions v3_ca -config openssl.cnf.template
 echo "--> CA created successfully."
 
 # -------------------------------------------------------------------
@@ -58,11 +59,11 @@ generate_server_cert() {
 # Phase 2: Generate Server Certificates
 # -------------------------------------------------------------------
 # For backend services
-generate_server_cert "users-auth"
-generate_server_cert "users-account"
+generate_server_cert "users-auth" "users-auth"
+generate_server_cert "users-account" "users-account"
 
 # For the KrakenD Gateway itself
-generate_server_cert "krakend" "krakend-gateway" # Use a distinct CN like 'krakend-gateway'
+generate_server_cert "krakend" "krakend" # Use a distinct CN like 'krakend-gateway'
 
 # -------------------------------------------------------------------
 # Phase 3: Create Client Certificate for KrakenD (for mTLS)
@@ -76,6 +77,8 @@ openssl x509 -req \
   -CA ${CERT_DIR}/ca.crt -CAkey ${CERT_DIR}/ca.key -CAcreateserial \
   -out ${CERT_DIR}/krakend-client.crt -days ${DAYS} -sha256 -extfile openssl.cnf.template -extensions v3_client
 
+
+chmod 644 ${CERT_DIR}/*.crt ${CERT_DIR}/*.key
 # -------------------------------------------------------------------
 # Final Cleanup
 # -------------------------------------------------------------------
