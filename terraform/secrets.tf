@@ -51,8 +51,8 @@ resource "kubernetes_secret" "app_tls" {
     name = "${each.key}-tls-secret"
   }
   data = {
-    "tls.crt" = file("./certs/${each.key}.crt")
-    "tls.key" = file("./certs/${each.key}.key")
+    "tls.crt" = file("./certs/tls.crt")
+    "tls.key" = file("./certs/tls.key")
     "ca.crt"  = file("./certs/ca.crt")
   }
 }
