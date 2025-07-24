@@ -47,8 +47,8 @@ resource "kubernetes_deployment" "app_deployments" {
           args = [
             "--host", "0.0.0.0",
             "--port", tostring(each.value.container_port),
-            "--ssl-keyfile=/etc/tls/${each.key}.key",
-            "--ssl-certfile=/etc/tls/${each.key}.crt",
+            "--ssl-keyfile=/etc/tls/tls.key",
+            "--ssl-certfile=/etc/tls/tls.crt",
             "--ssl-ca-certs=/etc/tls/ca.crt"
           ]
 
