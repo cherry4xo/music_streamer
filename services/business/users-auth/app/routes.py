@@ -1,4 +1,5 @@
-from fastapi import APIRouter, Depends, HTTPException, Request, Security, status
+from typing import Annotated
+from fastapi import APIRouter, Depends, Form, HTTPException, Request, Security, status
 from fastapi.security import OAuth2PasswordRequestForm
 from fastapi.responses import JSONResponse
 
@@ -11,18 +12,36 @@ router = APIRouter()
 
 
 @router.post("/access-token", response_model=JWTToken, status_code=status.HTTP_200_OK)
-async def route_access_token(credentials: OAuth2PasswordRequestForm = Depends()):
-    return await get_access_token(credentials=credentials)
-
-
-@router.post("/refresh-token", response_model=JWTRefreshToken, status_code=status.HTTP_200_OK)
-async def route_refresh_token(credentials: OAuth2PasswordRequestForm = Depends()):
-    return await get_refresh_token(credentials=credentials)
-
-
-@router.post("/refresh", response_model=JWTAccessToken, status_code=status.HTTP_200_OK)
-async def route_refresh(token: RefreshToken):
-    return await refresh_token(token=token)
+async def route_token(
+    grant_type: Annotated[str, Form()],
+    username: Annotated[str | None, Form()] = None,
+    password: Annotated[str | None, Form()] = None,
+    refresh_token_str: Annotated[str | None, Form(alias="refresh_token")] = None
+):
+    if grant_type == "password":
+        if not username or not password:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Username and password are required"
+            )
+        credentials = OAuth2PasswordRequestForm(
+            username=username, password=password
+        )
+        return await get_access_token(credentials=credentials)
+    
+    elif grant_type == "refresh_token":
+        if not refresh_token_str:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Refresh token is required"
+            )
+        return await refresh_token(refresh_token_str=refresh_token_str)
+    
+    else:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"Invalid grant type: {grant_type}"
+        )
 
 
 @router.get("/validate", status_code=status.HTTP_200_OK)

@@ -37,8 +37,6 @@ async def get_access_token(credentials: OAuth2PasswordRequestForm = Depends()):
         "roles": user_roles,
     }
 
-    print(token_data)
-
     access_token = create_access_token(data=token_data, expires_delta=access_token_expires)
     refresh_token = create_refresh_token(data={"sub": str(user.uuid)}, expires_delta=refresh_token_expires)
 
@@ -78,15 +76,15 @@ async def get_refresh_token(credentials: OAuth2PasswordRequestForm = Depends()):
 
 
 @log_calls
-async def refresh_token(token: RefreshToken):
-    access_token_expires = timedelta(minutes=settings.REFRESH_TOKEN_EXPIRE_MINUTES)
-    user = await validate_refresh_token(token=token.refresh_token)
+async def refresh_token(refresh_token_str: str):
+    access_token_expires = timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
+    user = await validate_refresh_token(token=refresh_token_str)
 
     if user is None:
         metrics.auth_token_refreshes_total.labels(status="failure").inc()
         raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="The user with uuid in token does not exist"
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Invalid refresh token"
         )
     
     user_roles = user.roles
@@ -102,7 +100,11 @@ async def refresh_token(token: RefreshToken):
 
     metrics.auth_token_refreshes_total.labels(status="success").inc()
 
-    return JWTAccessToken(access_token=new_access_token, token_type="bearer")
+    return JWTToken(
+        access_token=new_access_token, 
+        refresh_token=refresh_token_str, # Return the same refresh token
+        token_type="bearer"
+    )
 
 
 @log_calls

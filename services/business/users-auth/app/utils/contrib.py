@@ -1,3 +1,4 @@
+import logging
 from typing import Optional
 import jwt
 from fastapi import HTTPException, Security, status
@@ -12,6 +13,9 @@ from app.utils.jwt import ALGORITHM
 from app import settings
 
 
+logger = logging.getLogger(__name__)
+
+
 reusable_oauth2 = OAuth2PasswordBearer(
     tokenUrl=settings.LOGIN_URL,
 )
@@ -21,12 +25,12 @@ refresh_oauth2 = OAuth2PasswordBearer(
 
 async def get_current_user(token: str = Security(reusable_oauth2)) -> Optional[User]:
     try:
-        payload = jwt.decode(token, settings.SECRET_KEY, algorithms=[ALGORITHM])
+        payload = jwt.decode(token, settings.JWT_PUBLIC_KEY, algorithms=[ALGORITHM], audience="api-gateway", issuer="users-auth")
         token_data = JWTTokenPayload(**payload)
     except jwt.PyJWTError:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Could not validate credentials")
     
-    user = await User.filter(uuid=token_data.user_uuid).first()
+    user = await User.filter(uuid=token_data.sub).first()
     if not user:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found")
     
@@ -39,15 +43,16 @@ async def validate_refresh_token(token: str = Security(refresh_oauth2)) -> User 
         detail="Could not validate credentials",
     )
     try:
-        payload = jwt.decode(token, settings.SECRET_KEY, algorithms=[ALGORITHM])
+        payload = jwt.decode(token, settings.JWT_PUBLIC_KEY, algorithms=[ALGORITHM], audience="api-gateway", issuer="users-auth")
         username: str = payload.get("sub")
         if username is None:
             raise credentials_exception
         token_data = JWTTokenPayload(**payload)
     except (jwt.PyJWTError, ValidationError):
+        logger.info(f"ERROR, token: {token}")
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Could not validate credentials")
     
-    user = await User.filter(uuid=token_data.user_uuid).first()
+    user = await User.filter(uuid=token_data.sub).first()
     if not user:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found")
     

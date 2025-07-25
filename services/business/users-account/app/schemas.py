@@ -1,6 +1,10 @@
 from tortoise.contrib.pydantic import pydantic_model_creator
+from pydantic import BaseModel
 
 from app.models import User, AccountActivityLog
+
+class UserChangeUsername(BaseModel):
+    username: str
 
 User_Pydantic = pydantic_model_creator(User, name="User")
 UserIn_Pydantic = pydantic_model_creator(User, name="UserIn", exclude_readonly=True,

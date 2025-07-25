@@ -4,7 +4,7 @@ from fastapi import APIRouter, Depends, HTTPException, Header, status
 from pydantic import UUID4
 
 from app.models import User
-from app.schemas import UserGet_Pydantic
+from app.schemas import UserGet_Pydantic, UserChangeUsername
 from app import services
 
 
@@ -38,8 +38,8 @@ async def route_me(
 
 @router.post("/me/username", response_model=UserGet_Pydantic, status_code=status.HTTP_200_OK)
 async def change_username(
-    username: str,
-    user_id: UUID4 = Depends(get_user_id_from_gateway),
+    username: UserChangeUsername,
+    user_id: UUID4 = Depends(get_user_id_from_gateway)
 ):
     return await services.change_username(user_id=user_id, username=username)
 

@@ -2,6 +2,7 @@ import json
 import os
 import hvac
 import load_dotenv
+from cryptography.hazmat.primitives import serialization
 load_dotenv.load_dotenv()
 
 MODE = os.getenv("MODE", "PROD")
@@ -40,7 +41,11 @@ if MODE == "DEBUG":
     ROOT_PATH = os.getenv("AUTH_ROOT_PATH", "/")
 
     JWT_PRIVATE_KEY = os.getenv("JWT_PRIVATE_KEY_PATH")
-    JWT_PRIVATE_KEY = open(JWT_PRIVATE_KEY, "r").read()
+    if not JWT_PRIVATE_KEY:
+        raise ValueError("JWT_PRIVATE_KEY env variable not set")
+    
+    JWT_PRIVATE_KEY = serialization.load_pem_private_key(open(JWT_PRIVATE_KEY, "r").read().encode(), password=None)
+    JWT_PUBLIC_KEY = JWT_PRIVATE_KEY.public_key()
 
     JWKS_JSON_STR = os.getenv("JWKS_JSON_PATH")
     JWKS_JSON_STR = open(JWKS_JSON_STR, "r").read()

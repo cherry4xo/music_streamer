@@ -26,8 +26,8 @@ class JWTRefreshToken(BaseModel):
 
 
 class JWTTokenPayload(BaseModel):
-    user_uuid: UUID4 = None
-    token_kind: str = None
+    sub: UUID4 = None
+    token_type: str = None
 
 
 class RefreshToken(BaseModel):

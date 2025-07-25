@@ -4,7 +4,7 @@ from fastapi import HTTPException, status
 from pydantic import UUID4
 
 from app.models import User
-from app.schemas import UserIn_Pydantic, UserGet_Pydantic
+from app.schemas import UserIn_Pydantic, UserGet_Pydantic, UserChangeUsername
 from app.logger import log_calls
 from app.utils.email_messaging import send_confirm_email, EmailTopic
 from app.redis import RedisInterface
@@ -24,7 +24,7 @@ async def get_user_me(user_id: UUID4):
 
 
 @log_calls
-async def change_username(user_id: UUID4, username: str):
+async def change_username(user_id: UUID4, username: UserChangeUsername):
     user = await User.get_or_none(uuid=user_id)
 
     if user is None:
@@ -33,7 +33,7 @@ async def change_username(user_id: UUID4, username: str):
             detail="User account not found"
         )
     
-    await user.change_username(new_username=username)
+    await user.change_username(new_username=username.username)
 
 
 @log_calls
