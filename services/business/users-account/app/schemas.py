@@ -6,6 +6,9 @@ from app.models import User, AccountActivityLog
 class UserChangeUsername(BaseModel):
     username: str
 
+class UserConfirmEmail(BaseModel):
+    code: str
+
 User_Pydantic = pydantic_model_creator(User, name="User")
 UserIn_Pydantic = pydantic_model_creator(User, name="UserIn", exclude_readonly=True,
     exclude=(

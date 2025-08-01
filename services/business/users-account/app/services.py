@@ -1,4 +1,5 @@
 from datetime import datetime
+import logging
 
 from fastapi import HTTPException, status
 from pydantic import UUID4
@@ -9,6 +10,7 @@ from app.logger import log_calls
 from app.utils.email_messaging import send_confirm_email, EmailTopic
 from app.redis import RedisInterface
 
+logger = logging.getLogger(__name__)
 
 @log_calls
 async def get_user_me(user_id: UUID4):
@@ -71,10 +73,11 @@ async def confirm_email(user_id: UUID4, code: str):
     
     key = "generated_code"
     
-    record = await RedisInterface.get_record(type=EmailTopic.CONFIRM_EMAIL.value, id=user.uuid, key=code)
+    record = await RedisInterface.get_record(type=EmailTopic.CONFIRM_EMAIL.value, id=user.uuid, key=key)
     if record is not None:
         code_in_db = record.get(key, None)
         if code_in_db is not None:
+            code_in_db = code_in_db.decode("utf-8")
             if code_in_db == code:
                 user.is_email_verified = True
                 await user.save()
