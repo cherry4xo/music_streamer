@@ -7,10 +7,11 @@ from aiokafka import AIOKafkaProducer, AIOKafkaConsumer
 logger = logging.getLogger(__name__)
 
 class KafkaInterface:
-    def __init__(self, kafka_url: str, consume_topics: List[str], message_handler: Callable):
+    def __init__(self, kafka_url: str, consume_topics: List[str], message_handler: Callable, group_id: str):
         self._kafka_url: str = kafka_url
         self._consume_topics: List[str] = consume_topics
         self._message_handler: Callable = message_handler
+        self._group_id = group_id
         self._producer: AIOKafkaProducer = None
         self._consumer: AIOKafkaConsumer = None
         self._consumer_task: asyncio.Task = None
@@ -25,7 +26,7 @@ class KafkaInterface:
         self._consumer = AIOKafkaConsumer(
             *self._consume_topics,
             bootstrap_servers=self._kafka_url,
-            group_id="users-auth-service"
+            group_id=self._group_id
         )
         await self._consumer.start()
         logger.info("Kafka consumer started")

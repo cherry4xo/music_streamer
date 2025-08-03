@@ -62,10 +62,14 @@
 {
   "endpoint": "/v1/auth/create-user",
   "method": "POST",
+  "output_encoding": "no-op",
   "backend": [
     {
       "host": ["https://{{ .settings.auth_service_url }}"],
-      "url_pattern": "/create-user"
+      "url_pattern": "/create-user",
+      "accepted_status": [200, 400, 404],
+      "encoding": "no-op",
+      "sd": "static" 
     }
   ]
 }

@@ -69,8 +69,17 @@ class RedisInterface:
             name = f"{type}:{id}"
             if key:
                 data = await r.hget(name=name, key=key)
-                return {key: data}
-            return await r.hgetall(name=name)
+                if data is not None:
+                    return {key: data.decode('utf-8')}
+                return None
+            
+            raw_data = await r.hgetall(name=name)
+            
+            decoded_data = {}
+            for k, v in raw_data.items():
+                decoded_data[k.decode('utf-8')] = v.decode('utf-8')
+            
+            return decoded_data
         except Exception as e:
             logger.exception(f"Error: failed to get record {type}:{id}: {e}")
             return None

@@ -4,7 +4,7 @@ from fastapi import APIRouter, Depends, HTTPException, Header, status
 from pydantic import UUID4
 
 from app.models import User
-from app.schemas import UserConfirmEmail, UserGet_Pydantic, UserChangeUsername
+from app.schemas import UserChangeEmail, UserConfirmEmail, UserGet_Pydantic, UserChangeUsername
 from app import services
 
 
@@ -56,3 +56,19 @@ async def route_confirm_email(
     user_id: UUID4 = Depends(get_user_id_from_gateway)
 ):
     return await services.confirm_email(user_id=user_id, code=body.code)
+
+
+@router.post("/me/email/send_change_email", status_code=status.HTTP_200_OK)
+async def route_send_change_email(
+    body: UserChangeEmail,
+    user_id: UUID4 = Depends(get_user_id_from_gateway)
+):
+    return await services.send_change_email_letter(user_id=user_id, new_email=body.email)
+
+
+@router.post("/me/email/confirm_change_email", status_code=status.HTTP_200_OK)
+async def route_confirm_change_email(
+    body: UserConfirmEmail,
+    user_id: UUID4 = Depends(get_user_id_from_gateway)
+):
+    return await services.confirm_change_email(user_id=user_id, code=body.code)

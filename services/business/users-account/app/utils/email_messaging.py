@@ -43,8 +43,22 @@ async def send_confirm_email(user: User):
     generated_code = "".join([str(randint(0, 9)) for _ in range(6)])
     await send_email_letter(user.email, "Confirm your email", f"Your confirmation code: {generated_code}")
     store_mapping = { "generated_code": generated_code }
+    if await RedisInterface.record_exists(type=topic.value, id=str(user.uuid)):
+        await RedisInterface.delete_record(type=topic.value, id=str(user.uuid))
     await RedisInterface.create_record(type=topic.value, 
                                        id=str(user.uuid), 
                                        data=store_mapping, 
                                        expire=settings.EMAIL_CONFIRMATION_LETTER_EXPIRE_SECONDS)
     
+
+async def send_change_email(user: User, new_email: str):
+    topic = EmailTopic.CHANGE_EMAIL
+    generated_code = "".join([str(randint(0, 9)) for _ in range(6)])
+    await send_email_letter(new_email, "Email change confirmation", f"Your confirmation code: {generated_code}")
+    store_mapping = { "generated_code": generated_code, "new_email": new_email }
+    if await RedisInterface.record_exists(type=topic.value, id=str(user.uuid)):
+        await RedisInterface.delete_record(type=topic.value, id=str(user.uuid))
+    await RedisInterface.create_record(type=topic.value,
+                                       id=str(user.uuid),
+                                       data=store_mapping,
+                                       expire=settings.EMAIL_CONFIRMATION_LETTER_EXPIRE_SECONDS)

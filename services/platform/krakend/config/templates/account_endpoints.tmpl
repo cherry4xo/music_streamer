@@ -75,6 +75,42 @@
   }
 },
 {
+  "endpoint": "/v1/account/me/email/send_change_email",
+  "method": "POST",
+  "input_headers": ["X-User-Id"],
+  "output_encoding": "no-op",
+  "backend": [
+    {
+      "host": ["https://{{ .settings.account_service_url }}"],
+      "url_pattern": "/me/email/send_change_email",
+      "accepted_status": [200, 400, 404, 410, 500],
+      "encoding": "no-op",
+      "sd": "static"
+    }
+  ],
+  "extra_config": {
+    {{ template "jwt_validator.tmpl" . }}
+  }
+},
+{
+  "endpoint": "/v1/account/me/email/confirm_change_email",
+  "method": "POST",
+  "input_headers": ["X-User-Id"],
+  "output_encoding": "no-op",
+  "backend": [
+    {
+      "host": ["https://{{ .settings.account_service_url }}"],
+      "url_pattern": "/me/email/confirm_change_email",
+      "accepted_status": [200, 400, 404, 410, 500],
+      "encoding": "no-op",
+      "sd": "static"
+    }
+  ],
+  "extra_config": {
+    {{ template "jwt_validator.tmpl" . }}
+  }
+},
+{
   "endpoint": "/v1/account/docs",
   "method": "GET",
   "output_encoding": "no-op",

@@ -48,6 +48,7 @@ kafka_client = KafkaInterface(
     kafka_url=settings.KAFKA_URL,
     consume_topics=settings.KAFKA_CONSUME_TOPICS,
     message_handler=handle_kafka_message,
+    group_id="account-service-user-events-consumer"
 )
 
 
